@@ -15,3 +15,17 @@
 *.exe
 *.out
 *.app
+
+# Eclipse project files
+.project
+.cproject
+
+/aclocal.m4
+/configure
+/autom4te.cache
+/Makefile.in
+/Makefile
+/config.log
+/config.status
+/libpicomodel.pc
+/libtool
