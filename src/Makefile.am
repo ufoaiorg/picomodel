@@ -27,6 +27,8 @@ libpicomodel_la_SOURCES = \
 
 include_HEADERS = picomodel.h
 
+EXTRA_DIST = picointernal.h pm_fm.h lwo/lwo2.h
+
 INCLUDES = -I$(top_srcdir)/include -I$(top_builddir)/include
 
 libpicomodel_la_CFLAGS = -Wall
