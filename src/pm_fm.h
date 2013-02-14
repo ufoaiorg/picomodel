@@ -40,20 +40,20 @@
  serotonin@earthlink.net
  */
 
-#ifndef	__PM_FM_H__
-#define	__PM_FM_H__
+#ifndef __PM_FM_H__
+#define __PM_FM_H__
 
 #include "picointernal.h"
 
 //
 //	Absolute limits (from QData / QMView source)
 //
-#define	MAX_FM_TRIANGLES	2048
-#define MAX_FM_VERTS		2048
-#define MAX_FM_FRAMES		2048
-#define MAX_FM_SKINS		64
-#define	MAX_FM_SKINNAME		64
-#define MAX_FM_MESH_NODES	16
+#define MAX_FM_TRIANGLES    2048
+#define MAX_FM_VERTS        2048
+#define MAX_FM_FRAMES       2048
+#define MAX_FM_SKINS        64
+#define MAX_FM_SKINNAME     64
+#define MAX_FM_MESH_NODES   16
 
 #define DTRIVERTX_V0   0
 #define DTRIVERTX_V1   1
@@ -72,7 +72,7 @@
 #define SCALE_ADJUST_FACTOR 0.96
 
 #define INFO_HEIGHT 5
-#define INFO_Y (SKINPAGE_HEIGHT-INFO_HEIGHT)
+#define INFO_Y ( SKINPAGE_HEIGHT - INFO_HEIGHT )
 
 #ifndef byte
 #define byte unsigned char
@@ -81,7 +81,7 @@
 //
 //	Generic header on every chunk
 //
-#define	FM_MAXCHUNKIDENT	32L
+#define FM_MAXCHUNKIDENT    32L
 typedef struct {
 	char ident[FM_MAXCHUNKIDENT];
 	unsigned int version;
@@ -91,9 +91,9 @@ typedef struct {
 //
 //	The format of the "header" chunk
 //
-#define	FM_HEADERCHUNKNAME	"header"
-#define	FM_HEADERCHUNKVER	2
-#define	FM_HEADERCHUNKSIZE	40
+#define FM_HEADERCHUNKNAME  "header"
+#define FM_HEADERCHUNKVER   2
+#define FM_HEADERCHUNKSIZE  40
 typedef struct {
 	int skinWidth; // in pixels
 	int skinHeight; // in pixels
@@ -111,10 +111,10 @@ typedef struct {
 //	The format of an entry in the "skin" chunk.
 //	The number of entries is given in the fmheader chunk
 //
-#define	FM_SKINCHUNKNAME	"skin"
-#define	FM_SKINCHUNKVER		1
-#define	FM_MAXPATHLENGTH	64L
-#define	FM_SKINPATHSIZE	(FM_MAXPATHLENGTH)
+#define FM_SKINCHUNKNAME    "skin"
+#define FM_SKINCHUNKVER     1
+#define FM_MAXPATHLENGTH    64L
+#define FM_SKINPATHSIZE ( FM_MAXPATHLENGTH )
 typedef struct {
 	char path[FM_SKINPATHSIZE]; //	path, relative to 'base'
 } fm_skinpath_t;
@@ -124,9 +124,9 @@ typedef struct {
 //	of unique skin texture (u, v) coordinates to be mapped
 //	to verteces of the model
 //
-#define FM_STCOORDCHUNKNAME	"st coord"
-#define FM_STCOORDCHUNKVER	1
-#define	FM_STCOORDUVSIZE	(2L + 2L)
+#define FM_STCOORDCHUNKNAME "st coord"
+#define FM_STCOORDCHUNKVER  1
+#define FM_STCOORDUVSIZE    ( 2L + 2L )
 
 typedef struct {
 	short s;
@@ -137,9 +137,9 @@ typedef struct {
 //	The format of the "tris" chunk. This is a list of vertex indeces
 //	in 3D space, and the corresponding vertex indeces in texture space.
 //
-#define FM_TRISCHUNKNAME	"tris"
-#define FM_TRISCHUNKVER		1
-#define	FM_TRISINFOSIZE		(2L*3 + 2L*3)
+#define FM_TRISCHUNKNAME    "tris"
+#define FM_TRISCHUNKVER     1
+#define FM_TRISINFOSIZE     ( 2L * 3 + 2L * 3 )
 
 typedef struct {
 	short index_xyz[3];
@@ -151,10 +151,10 @@ typedef struct {
 //	frames, each specifying the coordinates and "light normal" index
 //	of every vertex of the model in 3D space.
 //
-#define FM_FRAMESCHUNKNAME	"frames"
-#define FM_FRAMESCHUNKVER	1
+#define FM_FRAMESCHUNKNAME  "frames"
+#define FM_FRAMESCHUNKVER   1
 
-#define FM_NUMVERTEXNORMALS	162
+#define FM_NUMVERTEXNORMALS 162
 
 // Frame info
 typedef struct {
