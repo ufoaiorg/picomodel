@@ -70,7 +70,7 @@ static const char *lwo_lwIDToStr (unsigned int lwID)
  preceding underscore cause it's a static func referenced
  by one structure only.
  */
-static int _lwo_canload ( PM_PARAMS_CANLOAD)
+static int _lwo_canload (PM_PARAMS_CANLOAD)
 {
 	picoMemStream_t *s;
 	unsigned int failID = 0;
@@ -78,8 +78,8 @@ static int _lwo_canload ( PM_PARAMS_CANLOAD)
 	int ret;
 
 	/* create a new pico memorystream */
-	s = _pico_new_memstream((picoByte_t *) buffer, bufSize);
-	if (s == NULL ) {
+	s = _pico_new_memstream((const picoByte_t *) buffer, bufSize);
+	if (s == NULL) {
 		return PICO_PMV_ERROR_MEMORY;
 	}
 
@@ -94,7 +94,7 @@ static int _lwo_canload ( PM_PARAMS_CANLOAD)
  _lwo_load()
  loads a LightWave Object model file.
  */
-static picoModel_t *_lwo_load ( PM_PARAMS_LOAD)
+static picoModel_t *_lwo_load (PM_PARAMS_LOAD)
 {
 	picoMemStream_t *s;
 	unsigned int failID = 0;
@@ -122,8 +122,6 @@ static picoModel_t *_lwo_load ( PM_PARAMS_LOAD)
 	picoVertexCombinationHash_t **hashTable;
 	picoVertexCombinationHash_t *vertexCombinationHash;
 
-	int surfacePolyCount;
-
 #ifdef DEBUG_PM_LWO
 	clock_t load_start, load_finish, convert_start, convert_finish;
 	double load_elapsed, convert_elapsed;
@@ -134,13 +132,13 @@ static picoModel_t *_lwo_load ( PM_PARAMS_LOAD)
 	/* do frame check */
 	if (frameNum < 0 || frameNum >= 1) {
 		_pico_printf(PICO_ERROR, "Invalid or out-of-range LWO frame specified");
-		return NULL ;
+		return NULL;
 	}
 
 	/* create a new pico memorystream */
-	s = _pico_new_memstream((picoByte_t *) buffer, bufSize);
-	if (s == NULL ) {
-		return NULL ;
+	s = _pico_new_memstream((const picoByte_t *) buffer, bufSize);
+	if (s == NULL) {
+		return NULL;
 	}
 
 	obj = lwGetObject(fileName, s, &failID, &failpos);
@@ -150,12 +148,12 @@ static picoModel_t *_lwo_load ( PM_PARAMS_LOAD)
 	if (!obj) {
 		_pico_printf(PICO_ERROR, "Couldn't load LWO file, failed on ID '%s', position %d", lwo_lwIDToStr(failID),
 				failpos);
-		return NULL ;
+		return NULL;
 	}
 
 #ifdef DEBUG_PM_LWO
 	convert_start = load_finish = clock();
-	load_elapsed = (double)(load_finish - load_start) / CLOCKS_PER_SEC;
+	load_elapsed = (double)( load_finish - load_start ) / CLOCKS_PER_SEC;
 #endif
 
 	/* -------------------------------------------------
@@ -164,9 +162,9 @@ static picoModel_t *_lwo_load ( PM_PARAMS_LOAD)
 
 	/* create a new pico model */
 	picoModel = PicoNewModel();
-	if (picoModel == NULL ) {
+	if (picoModel == NULL) {
 		_pico_printf(PICO_ERROR, "Unable to allocate a new model");
-		return NULL ;
+		return NULL;
 	}
 
 	/* do model setup */
@@ -215,11 +213,11 @@ static picoModel_t *_lwo_load ( PM_PARAMS_LOAD)
 	while (surface) {
 		/* allocate new pico surface */
 		picoSurface = PicoNewSurface(picoModel);
-		if (picoSurface == NULL ) {
+		if (picoSurface == NULL) {
 			_pico_printf(PICO_ERROR, "Unable to allocate a new model surface");
 			PicoFreeModel(picoModel);
 			lwFreeObject(obj);
-			return NULL ;
+			return NULL;
 		}
 
 		/* LWO model surfaces are all triangle meshes */
@@ -230,11 +228,11 @@ static picoModel_t *_lwo_load ( PM_PARAMS_LOAD)
 
 		/* create new pico shader */
 		picoShader = PicoNewShader(picoModel);
-		if (picoShader == NULL ) {
+		if (picoShader == NULL) {
 			_pico_printf(PICO_ERROR, "Unable to allocate a new model shader");
 			PicoFreeModel(picoModel);
 			lwFreeObject(obj);
-			return NULL ;
+			return NULL;
 		}
 
 		/* detox and set shader name */
@@ -252,21 +250,18 @@ static picoModel_t *_lwo_load ( PM_PARAMS_LOAD)
 
 		hashTable = PicoNewVertexCombinationHashTable();
 
-		if (hashTable == NULL ) {
+		if (hashTable == NULL) {
 			_pico_printf(PICO_ERROR, "Unable to allocate hash table");
 			PicoFreeModel(picoModel);
 			lwFreeObject(obj);
-			return NULL ;
+			return NULL;
 		}
-
-		/* Local polygon index for this surface. We don't want to use i in the loop
-		 * since that is the global poly index for the entire layer */
-		surfacePolyCount = 0;
 
 		for (i = 0, pol = layer->polygon.pol; i < layer->polygon.count; i++, pol++) {
 			/* does this polygon belong to this surface? */
-			if (pol->surf != surface)
+			if (pol->surf != surface) {
 				continue;
+			}
 
 			/* we only support polygons of the FACE type */
 			if (pol->type != ID_FACE) {
@@ -282,9 +277,6 @@ static picoModel_t *_lwo_load ( PM_PARAMS_LOAD)
 				continue;
 			}
 
-			/* We haven't discarded this polygon, so bump the surface polycount */
-			surfacePolyCount++;
-
 			for (j = 0, v = pol->v; j < 3; j++, v++) {
 				pt = &layer->point.pt[v->index];
 
@@ -295,8 +287,7 @@ static picoModel_t *_lwo_load ( PM_PARAMS_LOAD)
 
 				/* doom3 lwo data doesn't seem to have smoothing-angle information */
 #if 0
-				if(surface->smooth <= 0)
-				{
+				if ( surface->smooth <= 0 ) {
 					/* use face normals */
 					normal[ 0 ] = v->norm[ 0 ];
 					normal[ 1 ] = v->norm[ 2 ];
@@ -314,44 +305,44 @@ static picoModel_t *_lwo_load ( PM_PARAMS_LOAD)
 				st[0] = xyz[defaultSTAxis[0]] * defaultXYZtoSTScale[0];
 				st[1] = xyz[defaultSTAxis[1]] * defaultXYZtoSTScale[1];
 
-				color[0] = (picoByte_t)(surface->color.rgb[0] * surface->diffuse.val * 0xFF);
-				color[1] = (picoByte_t)(surface->color.rgb[1] * surface->diffuse.val * 0xFF);
-				color[2] = (picoByte_t)(surface->color.rgb[2] * surface->diffuse.val * 0xFF);
+				color[0] = (picoByte_t) (surface->color.rgb[0] * surface->diffuse.val * 0xFF);
+				color[1] = (picoByte_t) (surface->color.rgb[1] * surface->diffuse.val * 0xFF);
+				color[2] = (picoByte_t) (surface->color.rgb[2] * surface->diffuse.val * 0xFF);
 				color[3] = 0xFF;
 
 				/* set from points */
 				for (k = 0, vm = pt->vm; k < pt->nvmaps; k++, vm++) {
-					if (vm->vmap->type == LWID_('T','X','U','V')) {
+					if (vm->vmap->type == LWID_( 'T','X','U','V' )) {
 						/* set st coords */
 						st[0] = vm->vmap->val[vm->index][0];
 						st[1] = 1.f - vm->vmap->val[vm->index][1];
-					} else if (vm->vmap->type == LWID_('R','G','B','A')) {
+					} else if (vm->vmap->type == LWID_( 'R','G','B','A' )) {
 						/* set rgba */
-						color[0] = (picoByte_t)(
-								vm->vmap->val[vm->index][0] * surface->color.rgb[0] * surface->diffuse.val * 0xFF);
-						color[1] = (picoByte_t)(
-								vm->vmap->val[vm->index][1] * surface->color.rgb[1] * surface->diffuse.val * 0xFF);
-						color[2] = (picoByte_t)(
-								vm->vmap->val[vm->index][2] * surface->color.rgb[2] * surface->diffuse.val * 0xFF);
-						color[3] = (picoByte_t)(vm->vmap->val[vm->index][3] * 0xFF);
+						color[0] = (picoByte_t) (vm->vmap->val[vm->index][0] * surface->color.rgb[0]
+								* surface->diffuse.val * 0xFF);
+						color[1] = (picoByte_t) (vm->vmap->val[vm->index][1] * surface->color.rgb[1]
+								* surface->diffuse.val * 0xFF);
+						color[2] = (picoByte_t) (vm->vmap->val[vm->index][2] * surface->color.rgb[2]
+								* surface->diffuse.val * 0xFF);
+						color[3] = (picoByte_t) (vm->vmap->val[vm->index][3] * 0xFF);
 					}
 				}
 
 				/* override with polygon data */
 				for (k = 0, vm = v->vm; k < v->nvmaps; k++, vm++) {
-					if (vm->vmap->type == LWID_('T','X','U','V')) {
+					if (vm->vmap->type == LWID_( 'T','X','U','V' )) {
 						/* set st coords */
 						st[0] = vm->vmap->val[vm->index][0];
 						st[1] = 1.f - vm->vmap->val[vm->index][1];
-					} else if (vm->vmap->type == LWID_('R','G','B','A')) {
+					} else if (vm->vmap->type == LWID_( 'R','G','B','A' )) {
 						/* set rgba */
-						color[0] = (picoByte_t)(
-								vm->vmap->val[vm->index][0] * surface->color.rgb[0] * surface->diffuse.val * 0xFF);
-						color[1] = (picoByte_t)(
-								vm->vmap->val[vm->index][1] * surface->color.rgb[1] * surface->diffuse.val * 0xFF);
-						color[2] = (picoByte_t)(
-								vm->vmap->val[vm->index][2] * surface->color.rgb[2] * surface->diffuse.val * 0xFF);
-						color[3] = (picoByte_t)(vm->vmap->val[vm->index][3] * 0xFF);
+						color[0] = (picoByte_t) (vm->vmap->val[vm->index][0] * surface->color.rgb[0]
+								* surface->diffuse.val * 0xFF);
+						color[1] = (picoByte_t) (vm->vmap->val[vm->index][1] * surface->color.rgb[1]
+								* surface->diffuse.val * 0xFF);
+						color[2] = (picoByte_t) (vm->vmap->val[vm->index][2] * surface->color.rgb[2]
+								* surface->diffuse.val * 0xFF);
+						color[3] = (picoByte_t) (vm->vmap->val[vm->index][3] * 0xFF);
 					}
 				}
 
@@ -360,18 +351,18 @@ static picoModel_t *_lwo_load ( PM_PARAMS_LOAD)
 
 				if (vertexCombinationHash) {
 					/* found an existing one */
-					PicoSetSurfaceIndex(picoSurface, (surfacePolyCount * 3 + j), vertexCombinationHash->index);
+					PicoSetSurfaceIndex(picoSurface, (i * 3 + j), vertexCombinationHash->index);
 				} else {
 					/* it is a new one */
 					vertexCombinationHash = PicoAddVertexCombinationToHashTable(hashTable, xyz, normal, st, color,
 							(picoIndex_t) numverts);
 
-					if (vertexCombinationHash == NULL ) {
+					if (vertexCombinationHash == NULL) {
 						_pico_printf(PICO_ERROR, "Unable to allocate hash bucket entry table");
 						PicoFreeVertexCombinationHashTable(hashTable);
 						PicoFreeModel(picoModel);
 						lwFreeObject(obj);
-						return NULL ;
+						return NULL;
 					}
 
 					/* add the vertex to this surface */
@@ -387,7 +378,7 @@ static picoModel_t *_lwo_load ( PM_PARAMS_LOAD)
 					PicoSetSurfaceST(picoSurface, 0, numverts, st);
 
 					/* set index */
-					PicoSetSurfaceIndex(picoSurface, (surfacePolyCount * 3 + j), (picoIndex_t) numverts);
+					PicoSetSurfaceIndex(picoSurface, (i * 3 + j), (picoIndex_t) numverts);
 
 					numverts++;
 				}
@@ -409,8 +400,8 @@ static picoModel_t *_lwo_load ( PM_PARAMS_LOAD)
 
 #ifdef DEBUG_PM_LWO
 	load_finish = clock();
-	load_elapsed += (double)(load_finish - load_start) / CLOCKS_PER_SEC;
-	convert_elapsed = (double)(convert_finish - convert_start) / CLOCKS_PER_SEC;
+	load_elapsed += (double)( load_finish - load_start ) / CLOCKS_PER_SEC;
+	convert_elapsed = (double)( convert_finish - convert_start ) / CLOCKS_PER_SEC;
 	_pico_printf( PICO_NORMAL, "Loaded model in in %-.2f second(s) (loading: %-.2fs converting: %-.2fs)\n", load_elapsed + convert_elapsed, load_elapsed, convert_elapsed );
 #endif
 

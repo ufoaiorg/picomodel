@@ -73,8 +73,9 @@ lwClip *lwGetClip (picoMemStream_t *fp, int cksize)
 	/* allocate the Clip structure */
 
 	clip = _pico_calloc(1, sizeof(lwClip));
-	if (!clip)
+	if (!clip) {
 		goto Fail;
+	}
 
 	clip->contrast.val = 1.0f;
 	clip->brightness.val = 1.0f;
@@ -94,8 +95,9 @@ lwClip *lwGetClip (picoMemStream_t *fp, int cksize)
 
 	clip->type = getU4(fp);
 	sz = getU2(fp);
-	if (0 > get_flen())
+	if (0 > get_flen()) {
 		goto Fail;
+	}
 
 	sz += sz & 1;
 	set_flen(0);
@@ -141,28 +143,33 @@ lwClip *lwGetClip (picoMemStream_t *fp, int cksize)
 	/* error while reading current subchunk? */
 
 	rlen = get_flen();
-	if (rlen < 0 || rlen > sz)
+	if (rlen < 0 || rlen > sz) {
 		goto Fail;
+	}
 
 	/* skip unread parts of the current subchunk */
 
-	if (rlen < sz)
+	if (rlen < sz) {
 		_pico_memstream_seek(fp, sz - rlen, PICO_SEEK_CUR);
+	}
 
 	/* end of the CLIP chunk? */
 
 	rlen = _pico_memstream_tell(fp) - pos;
-	if (cksize < rlen)
+	if (cksize < rlen) {
 		goto Fail;
-	if (cksize == rlen)
+	}
+	if (cksize == rlen) {
 		return clip;
+	}
 
 	/* process subchunks as they're encountered */
 
 	id = getU4(fp);
 	sz = getU2(fp);
-	if (0 > get_flen())
+	if (0 > get_flen()) {
 		goto Fail;
+	}
 
 	while (1) {
 		sz += sz & 1;
@@ -207,8 +214,9 @@ lwClip *lwGetClip (picoMemStream_t *fp, int cksize)
 		case ID_IFLT:
 		case ID_PFLT:
 			filt = _pico_calloc(1, sizeof(lwPlugin));
-			if (!filt)
+			if (!filt) {
 				goto Fail;
+			}
 
 			filt->name = getS0(fp);
 			filt->flags = getU2(fp);
@@ -231,35 +239,40 @@ lwClip *lwGetClip (picoMemStream_t *fp, int cksize)
 		/* error while reading current subchunk? */
 
 		rlen = get_flen();
-		if (rlen < 0 || rlen > sz)
+		if (rlen < 0 || rlen > sz) {
 			goto Fail;
+		}
 
 		/* skip unread parts of the current subchunk */
 
-		if (rlen < sz)
+		if (rlen < sz) {
 			_pico_memstream_seek(fp, sz - rlen, PICO_SEEK_CUR);
+		}
 
 		/* end of the CLIP chunk? */
 
 		rlen = _pico_memstream_tell(fp) - pos;
-		if (cksize < rlen)
+		if (cksize < rlen) {
 			goto Fail;
-		if (cksize == rlen)
+		}
+		if (cksize == rlen) {
 			break;
+		}
 
 		/* get the next chunk header */
 
 		set_flen(0);
 		id = getU4(fp);
 		sz = getU2(fp);
-		if (6 != get_flen())
+		if (6 != get_flen()) {
 			goto Fail;
+		}
 	}
 
 	return clip;
 
 	Fail: lwFreeClip(clip);
-	return NULL ;
+	return NULL;
 }
 
 /*
@@ -275,8 +288,9 @@ lwClip *lwFindClip (lwClip *list, int index)
 
 	clip = list;
 	while (clip) {
-		if (clip->index == index)
+		if (clip->index == index) {
 			break;
+		}
 		clip = clip->next;
 	}
 	return clip;

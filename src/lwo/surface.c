@@ -20,12 +20,15 @@
 void lwFreePlugin (lwPlugin *p)
 {
 	if (p) {
-		if (p->ord)
+		if (p->ord) {
 			_pico_free(p->ord);
-		if (p->name)
+		}
+		if (p->name) {
 			_pico_free(p->name);
-		if (p->data)
+		}
+		if (p->data) {
 			_pico_free(p->data);
+		}
 		_pico_free(p);
 	}
 }
@@ -40,26 +43,33 @@ void lwFreePlugin (lwPlugin *p)
 void lwFreeTexture (lwTexture *t)
 {
 	if (t) {
-		if (t->ord)
+		if (t->ord) {
 			_pico_free(t->ord);
+		}
 		switch (t->type) {
 		case ID_IMAP:
-			if (t->param.imap.vmap_name)
+			if (t->param.imap.vmap_name) {
 				_pico_free(t->param.imap.vmap_name);
-			if (t->tmap.ref_object)
+			}
+			if (t->tmap.ref_object) {
 				_pico_free(t->tmap.ref_object);
+			}
 			break;
 		case ID_PROC:
-			if (t->param.proc.name)
+			if (t->param.proc.name) {
 				_pico_free(t->param.proc.name);
-			if (t->param.proc.data)
+			}
+			if (t->param.proc.data) {
 				_pico_free(t->param.proc.data);
+			}
 			break;
 		case ID_GRAD:
-			if (t->param.grad.key)
+			if (t->param.grad.key) {
 				_pico_free(t->param.grad.key);
-			if (t->param.grad.ikey)
+			}
+			if (t->param.grad.ikey) {
 				_pico_free(t->param.grad.ikey);
+			}
 			break;
 		}
 		_pico_free(t);
@@ -76,10 +86,12 @@ void lwFreeTexture (lwTexture *t)
 void lwFreeSurface (lwSurface *surf)
 {
 	if (surf) {
-		if (surf->name)
+		if (surf->name) {
 			_pico_free(surf->name);
-		if (surf->srcname)
+		}
+		if (surf->srcname) {
 			_pico_free(surf->srcname);
+		}
 
 		lwListFree(surf->shader, (void *) lwFreePlugin);
 
@@ -126,8 +138,9 @@ int lwGetTHeader (picoMemStream_t *fp, int hsz, lwTexture *tex)
 
 	id = getU4(fp);
 	sz = getU2(fp);
-	if (0 > get_flen())
+	if (0 > get_flen()) {
 		return 0;
+	}
 
 	/* process subchunks as they're encountered */
 
@@ -165,26 +178,30 @@ int lwGetTHeader (picoMemStream_t *fp, int hsz, lwTexture *tex)
 		/* error while reading current subchunk? */
 
 		rlen = get_flen();
-		if (rlen < 0 || rlen > sz)
+		if (rlen < 0 || rlen > sz) {
 			return 0;
+		}
 
 		/* skip unread parts of the current subchunk */
 
-		if (rlen < sz)
+		if (rlen < sz) {
 			_pico_memstream_seek(fp, sz - rlen, PICO_SEEK_CUR);
+		}
 
 		/* end of the texture header subchunk? */
 
-		if (hsz <= _pico_memstream_tell(fp) - pos)
+		if (hsz <= _pico_memstream_tell(fp) - pos) {
 			break;
+		}
 
 		/* get the next subchunk header */
 
 		set_flen(0);
 		id = getU4(fp);
 		sz = getU2(fp);
-		if (6 != get_flen())
+		if (6 != get_flen()) {
 			return 0;
+		}
 	}
 
 	set_flen(_pico_memstream_tell(fp) - pos);
@@ -208,8 +225,9 @@ int lwGetTMap (picoMemStream_t *fp, int tmapsz, lwTMap *tmap)
 	pos = _pico_memstream_tell(fp);
 	id = getU4(fp);
 	sz = getU2(fp);
-	if (0 > get_flen())
+	if (0 > get_flen()) {
 		return 0;
+	}
 
 	while (1) {
 		sz += sz & 1;
@@ -256,26 +274,30 @@ int lwGetTMap (picoMemStream_t *fp, int tmapsz, lwTMap *tmap)
 		/* error while reading the current subchunk? */
 
 		rlen = get_flen();
-		if (rlen < 0 || rlen > sz)
+		if (rlen < 0 || rlen > sz) {
 			return 0;
+		}
 
 		/* skip unread parts of the current subchunk */
 
-		if (rlen < sz)
+		if (rlen < sz) {
 			_pico_memstream_seek(fp, sz - rlen, PICO_SEEK_CUR);
+		}
 
 		/* end of the TMAP subchunk? */
 
-		if (tmapsz <= _pico_memstream_tell(fp) - pos)
+		if (tmapsz <= _pico_memstream_tell(fp) - pos) {
 			break;
+		}
 
 		/* get the next subchunk header */
 
 		set_flen(0);
 		id = getU4(fp);
 		sz = getU2(fp);
-		if (6 != get_flen())
+		if (6 != get_flen()) {
 			return 0;
+		}
 	}
 
 	set_flen(_pico_memstream_tell(fp) - pos);
@@ -298,8 +320,9 @@ int lwGetImageMap (picoMemStream_t *fp, int rsz, lwTexture *tex)
 	pos = _pico_memstream_tell(fp);
 	id = getU4(fp);
 	sz = getU2(fp);
-	if (0 > get_flen())
+	if (0 > get_flen()) {
 		return 0;
+	}
 
 	while (1) {
 		sz += sz & 1;
@@ -307,8 +330,9 @@ int lwGetImageMap (picoMemStream_t *fp, int rsz, lwTexture *tex)
 
 		switch (id) {
 		case ID_TMAP:
-			if (!lwGetTMap(fp, sz, &tex->tmap))
+			if (!lwGetTMap(fp, sz, &tex->tmap)) {
 				return 0;
+			}
 			break;
 
 		case ID_PROJ:
@@ -368,26 +392,30 @@ int lwGetImageMap (picoMemStream_t *fp, int rsz, lwTexture *tex)
 		/* error while reading the current subchunk? */
 
 		rlen = get_flen();
-		if (rlen < 0 || rlen > sz)
+		if (rlen < 0 || rlen > sz) {
 			return 0;
+		}
 
 		/* skip unread parts of the current subchunk */
 
-		if (rlen < sz)
+		if (rlen < sz) {
 			_pico_memstream_seek(fp, sz - rlen, PICO_SEEK_CUR);
+		}
 
 		/* end of the image map? */
 
-		if (rsz <= _pico_memstream_tell(fp) - pos)
+		if (rsz <= _pico_memstream_tell(fp) - pos) {
 			break;
+		}
 
 		/* get the next subchunk header */
 
 		set_flen(0);
 		id = getU4(fp);
 		sz = getU2(fp);
-		if (6 != get_flen())
+		if (6 != get_flen()) {
 			return 0;
+		}
 	}
 
 	set_flen(_pico_memstream_tell(fp) - pos);
@@ -410,8 +438,9 @@ int lwGetProcedural (picoMemStream_t *fp, int rsz, lwTexture *tex)
 	pos = _pico_memstream_tell(fp);
 	id = getU4(fp);
 	sz = getU2(fp);
-	if (0 > get_flen())
+	if (0 > get_flen()) {
 		return 0;
+	}
 
 	while (1) {
 		sz += sz & 1;
@@ -419,8 +448,9 @@ int lwGetProcedural (picoMemStream_t *fp, int rsz, lwTexture *tex)
 
 		switch (id) {
 		case ID_TMAP:
-			if (!lwGetTMap(fp, sz, &tex->tmap))
+			if (!lwGetTMap(fp, sz, &tex->tmap)) {
 				return 0;
+			}
 			break;
 
 		case ID_AXIS:
@@ -429,10 +459,12 @@ int lwGetProcedural (picoMemStream_t *fp, int rsz, lwTexture *tex)
 
 		case ID_VALU:
 			tex->param.proc.value[0] = getF4(fp);
-			if (sz >= 8)
+			if (sz >= 8) {
 				tex->param.proc.value[1] = getF4(fp);
-			if (sz >= 12)
+			}
+			if (sz >= 12) {
 				tex->param.proc.value[2] = getF4(fp);
+			}
 			break;
 
 		case ID_FUNC:
@@ -448,26 +480,30 @@ int lwGetProcedural (picoMemStream_t *fp, int rsz, lwTexture *tex)
 		/* error while reading the current subchunk? */
 
 		rlen = get_flen();
-		if (rlen < 0 || rlen > sz)
+		if (rlen < 0 || rlen > sz) {
 			return 0;
+		}
 
 		/* skip unread parts of the current subchunk */
 
-		if (rlen < sz)
+		if (rlen < sz) {
 			_pico_memstream_seek(fp, sz - rlen, PICO_SEEK_CUR);
+		}
 
 		/* end of the procedural block? */
 
-		if (rsz <= _pico_memstream_tell(fp) - pos)
+		if (rsz <= _pico_memstream_tell(fp) - pos) {
 			break;
+		}
 
 		/* get the next subchunk header */
 
 		set_flen(0);
 		id = getU4(fp);
 		sz = getU2(fp);
-		if (6 != get_flen())
+		if (6 != get_flen()) {
 			return 0;
+		}
 	}
 
 	set_flen(_pico_memstream_tell(fp) - pos);
@@ -490,8 +526,9 @@ int lwGetGradient (picoMemStream_t *fp, int rsz, lwTexture *tex)
 	pos = _pico_memstream_tell(fp);
 	id = getU4(fp);
 	sz = getU2(fp);
-	if (0 > get_flen())
+	if (0 > get_flen()) {
 		return 0;
+	}
 
 	while (1) {
 		sz += sz & 1;
@@ -499,8 +536,9 @@ int lwGetGradient (picoMemStream_t *fp, int rsz, lwTexture *tex)
 
 		switch (id) {
 		case ID_TMAP:
-			if (!lwGetTMap(fp, sz, &tex->tmap))
+			if (!lwGetTMap(fp, sz, &tex->tmap)) {
 				return 0;
+			}
 			break;
 
 		case ID_PNAM:
@@ -526,8 +564,9 @@ int lwGetGradient (picoMemStream_t *fp, int rsz, lwTexture *tex)
 		case ID_FKEY:
 			nkeys = sz / sizeof(lwGradKey);
 			tex->param.grad.key = _pico_calloc(nkeys, sizeof(lwGradKey));
-			if (!tex->param.grad.key)
+			if (!tex->param.grad.key) {
 				return 0;
+			}
 			for (i = 0; i < nkeys; i++) {
 				tex->param.grad.key[i].value = getF4(fp);
 				for (j = 0; j < 4; j++)
@@ -538,8 +577,9 @@ int lwGetGradient (picoMemStream_t *fp, int rsz, lwTexture *tex)
 		case ID_IKEY:
 			nkeys = sz / 2;
 			tex->param.grad.ikey = _pico_calloc(nkeys, sizeof(short));
-			if (!tex->param.grad.ikey)
+			if (!tex->param.grad.ikey) {
 				return 0;
+			}
 			for (i = 0; i < nkeys; i++)
 				tex->param.grad.ikey[i] = getU2(fp);
 			break;
@@ -551,26 +591,30 @@ int lwGetGradient (picoMemStream_t *fp, int rsz, lwTexture *tex)
 		/* error while reading the current subchunk? */
 
 		rlen = get_flen();
-		if (rlen < 0 || rlen > sz)
+		if (rlen < 0 || rlen > sz) {
 			return 0;
+		}
 
 		/* skip unread parts of the current subchunk */
 
-		if (rlen < sz)
+		if (rlen < sz) {
 			_pico_memstream_seek(fp, sz - rlen, PICO_SEEK_CUR);
+		}
 
 		/* end of the gradient? */
 
-		if (rsz <= _pico_memstream_tell(fp) - pos)
+		if (rsz <= _pico_memstream_tell(fp) - pos) {
 			break;
+		}
 
 		/* get the next subchunk header */
 
 		set_flen(0);
 		id = getU4(fp);
 		sz = getU2(fp);
-		if (6 != get_flen())
+		if (6 != get_flen()) {
 			return 0;
+		}
 	}
 
 	set_flen(_pico_memstream_tell(fp) - pos);
@@ -591,8 +635,9 @@ lwTexture *lwGetTexture (picoMemStream_t *fp, int bloksz, unsigned int type)
 	int ok;
 
 	tex = _pico_calloc(1, sizeof(lwTexture));
-	if (!tex)
-		return NULL ;
+	if (!tex) {
+		return NULL;
+	}
 
 	tex->type = type;
 	tex->tmap.size.val[0] = tex->tmap.size.val[1] = tex->tmap.size.val[2] = 1.0f;
@@ -602,7 +647,7 @@ lwTexture *lwGetTexture (picoMemStream_t *fp, int bloksz, unsigned int type)
 	sz = getU2(fp);
 	if (!lwGetTHeader(fp, sz, tex)) {
 		_pico_free(tex);
-		return NULL ;
+		return NULL;
 	}
 
 	sz = bloksz - sz - 6;
@@ -622,7 +667,7 @@ lwTexture *lwGetTexture (picoMemStream_t *fp, int bloksz, unsigned int type)
 
 	if (!ok) {
 		lwFreeTexture(tex);
-		return NULL ;
+		return NULL;
 	}
 
 	set_flen(bloksz);
@@ -644,8 +689,9 @@ lwPlugin *lwGetShader (picoMemStream_t *fp, int bloksz)
 	int hsz, rlen, pos;
 
 	shdr = _pico_calloc(1, sizeof(lwPlugin));
-	if (!shdr)
-		return NULL ;
+	if (!shdr) {
+		return NULL;
+	}
 
 	pos = _pico_memstream_tell(fp);
 	set_flen(0);
@@ -653,8 +699,9 @@ lwPlugin *lwGetShader (picoMemStream_t *fp, int bloksz)
 	shdr->ord = getS0(fp);
 	id = getU4(fp);
 	sz = getU2(fp);
-	if (0 > get_flen())
+	if (0 > get_flen()) {
 		goto Fail;
+	}
 
 	while (hsz > 0) {
 		sz += sz & 1;
@@ -671,8 +718,9 @@ lwPlugin *lwGetShader (picoMemStream_t *fp, int bloksz)
 
 	id = getU4(fp);
 	sz = getU2(fp);
-	if (0 > get_flen())
+	if (0 > get_flen()) {
 		goto Fail;
+	}
 
 	while (1) {
 		sz += sz & 1;
@@ -692,33 +740,37 @@ lwPlugin *lwGetShader (picoMemStream_t *fp, int bloksz)
 		/* error while reading the current subchunk? */
 
 		rlen = get_flen();
-		if (rlen < 0 || rlen > sz)
+		if (rlen < 0 || rlen > sz) {
 			goto Fail;
+		}
 
 		/* skip unread parts of the current subchunk */
 
-		if (rlen < sz)
+		if (rlen < sz) {
 			_pico_memstream_seek(fp, sz - rlen, PICO_SEEK_CUR);
+		}
 
 		/* end of the shader block? */
 
-		if (bloksz <= _pico_memstream_tell(fp) - pos)
+		if (bloksz <= _pico_memstream_tell(fp) - pos) {
 			break;
+		}
 
 		/* get the next subchunk header */
 
 		set_flen(0);
 		id = getU4(fp);
 		sz = getU2(fp);
-		if (6 != get_flen())
+		if (6 != get_flen()) {
 			goto Fail;
+		}
 	}
 
 	set_flen(_pico_memstream_tell(fp) - pos);
 	return shdr;
 
 	Fail: lwFreePlugin(shdr);
-	return NULL ;
+	return NULL;
 }
 
 /*
@@ -732,30 +784,12 @@ lwPlugin *lwGetShader (picoMemStream_t *fp, int bloksz)
 
 static int compare_textures (lwTexture *a, lwTexture *b)
 {
-	if (a->ord != NULL && b->ord != NULL ) {
-		return strcmp(a->ord, b->ord);
-	} else if (a->ord != NULL ) {
-		return 1;
-	} else if (b->ord != NULL ) {
-		return -1;
-	} else {
-		// Both strings are NULL
-		return 0;
-	}
+	return strcmp(a->ord, b->ord);
 }
 
 static int compare_shaders (lwPlugin *a, lwPlugin *b)
 {
-	if (a->ord != NULL && b->ord != NULL ) {
-		return strcmp(a->ord, b->ord);
-	} else if (a->ord != NULL ) {
-		return 1;
-	} else if (b->ord != NULL ) {
-		return -1;
-	} else {
-		// Both strings are NULL
-		return 0;
-	}
+	return strcmp(a->ord, b->ord);
 }
 
 /*
@@ -821,8 +855,9 @@ lwSurface *lwDefaultSurface (void)
 	lwSurface *surf;
 
 	surf = _pico_calloc(1, sizeof(lwSurface));
-	if (!surf)
-		return NULL ;
+	if (!surf) {
+		return NULL;
+	}
 
 	surf->color.rgb[0] = 0.78431f;
 	surf->color.rgb[1] = 0.78431f;
@@ -855,8 +890,9 @@ lwSurface *lwGetSurface (picoMemStream_t *fp, int cksize)
 	/* allocate the Surface structure */
 
 	surf = _pico_calloc(1, sizeof(lwSurface));
-	if (!surf)
+	if (!surf) {
 		goto Fail;
+	}
 
 	/* non-zero defaults */
 
@@ -883,8 +919,9 @@ lwSurface *lwGetSurface (picoMemStream_t *fp, int cksize)
 
 	id = getU4(fp);
 	sz = getU2(fp);
-	if (0 > get_flen())
+	if (0 > get_flen()) {
 		goto Fail;
+	}
 
 	/* process subchunks as they're encountered */
 
@@ -1000,12 +1037,15 @@ lwSurface *lwGetSurface (picoMemStream_t *fp, int cksize)
 
 		case ID_LINE:
 			surf->line.enabled = 1;
-			if (sz >= 2)
+			if (sz >= 2) {
 				surf->line.flags = getU2(fp);
-			if (sz >= 6)
+			}
+			if (sz >= 6) {
 				surf->line.size.val = getF4(fp);
-			if (sz >= 8)
+			}
+			if (sz >= 8) {
 				surf->line.size.eindex = getVX(fp);
+			}
 			break;
 
 		case ID_ALPH:
@@ -1025,16 +1065,19 @@ lwSurface *lwGetSurface (picoMemStream_t *fp, int cksize)
 			case ID_PROC:
 			case ID_GRAD:
 				tex = lwGetTexture(fp, sz - 4, type);
-				if (!tex)
+				if (!tex) {
 					goto Fail;
-				if (!add_texture(surf, tex))
+				}
+				if (!add_texture(surf, tex)) {
 					lwFreeTexture(tex);
+				}
 				set_flen(4 + get_flen());
 				break;
 			case ID_SHDR:
 				shdr = lwGetShader(fp, sz - 4);
-				if (!shdr)
+				if (!shdr) {
 					goto Fail;
+				}
 				lwListInsert((void **) &surf->shader, shdr, (void *) compare_shaders);
 				++surf->nshaders;
 				set_flen(4 + get_flen());
@@ -1049,31 +1092,36 @@ lwSurface *lwGetSurface (picoMemStream_t *fp, int cksize)
 		/* error while reading current subchunk? */
 
 		rlen = get_flen();
-		if (rlen < 0 || rlen > sz)
+		if (rlen < 0 || rlen > sz) {
 			goto Fail;
+		}
 
 		/* skip unread parts of the current subchunk */
 
-		if (rlen < sz)
+		if (rlen < sz) {
 			_pico_memstream_seek(fp, sz - rlen, PICO_SEEK_CUR);
+		}
 
 		/* end of the SURF chunk? */
 
-		if (cksize <= _pico_memstream_tell(fp) - pos)
+		if (cksize <= _pico_memstream_tell(fp) - pos) {
 			break;
+		}
 
 		/* get the next subchunk header */
 
 		set_flen(0);
 		id = getU4(fp);
 		sz = getU2(fp);
-		if (6 != get_flen())
+		if (6 != get_flen()) {
 			goto Fail;
+		}
 	}
 
 	return surf;
 
-	Fail: if (surf)
+	Fail: if (surf) {
 		lwFreeSurface(surf);
-	return NULL ;
+	}
+	return NULL;
 }

@@ -75,8 +75,9 @@ void lwListInsert (void **vlist, void *vitem, int (*compare) (void *, void *))
 	prev = NULL;
 
 	while (node) {
-		if (0 < compare(node, item))
+		if (0 < compare(node, item)) {
 			break;
+		}
 		prev = node;
 		node = node->next;
 	}

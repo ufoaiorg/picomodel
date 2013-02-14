@@ -63,8 +63,9 @@ void _terrain_load_tga_buffer (unsigned char *buffer, unsigned char **pic, int *
 
 	*pic = NULL;
 
-	if (buffer == NULL )
+	if (buffer == NULL) {
 		return;
+	}
 
 	buf_p = buffer;
 
@@ -109,17 +110,20 @@ void _terrain_load_tga_buffer (unsigned char *buffer, unsigned char **pic, int *
 	rows = targa_header.height;
 	numPixels = columns * rows;
 
-	if (width)
+	if (width) {
 		*width = columns;
-	if (height)
+	}
+	if (height) {
 		*height = rows;
+	}
 
 	targa_rgba = _pico_alloc(numPixels * 4);
 	*pic = targa_rgba;
 
-	if (targa_header.id_length != 0)
+	if (targa_header.id_length != 0) {
 		buf_p += targa_header.id_length; // skip TARGA image comment
 
+	}
 	if (targa_header.image_type == 2 || targa_header.image_type == 3) {
 		// Uncompressed RGB or gray scale image
 		for (row = rows - 1; row >= 0; row--) {
@@ -205,10 +209,11 @@ void _terrain_load_tga_buffer (unsigned char *buffer, unsigned char **pic, int *
 						column++;
 						if (column == columns) { // run spans across rows
 							column = 0;
-							if (row > 0)
+							if (row > 0) {
 								row--;
-							else
+							} else {
 								goto breakOut;
+							}
 							pixbuf = targa_rgba + row * columns * 4;
 						}
 					}
@@ -241,10 +246,11 @@ void _terrain_load_tga_buffer (unsigned char *buffer, unsigned char **pic, int *
 						column++;
 						if (column == columns) { // pixel packet run spans across rows
 							column = 0;
-							if (row > 0)
+							if (row > 0) {
 								row--;
-							else
+							} else {
 								goto breakOut;
+							}
 							pixbuf = targa_rgba + row * columns * 4;
 						}
 					}
@@ -273,21 +279,20 @@ void _terrain_load_tga_buffer (unsigned char *buffer, unsigned char **pic, int *
  validates a picoterrain file
  */
 
-static int _terrain_canload ( PM_PARAMS_CANLOAD)
+static int _terrain_canload (PM_PARAMS_CANLOAD)
 {
 	picoParser_t *p;
 
-	/* keep the friggin compiler happy */
-	*fileName = *fileName;
-
 	/* create pico parser */
-	p = _pico_new_parser((picoByte_t*) buffer, bufSize);
-	if (p == NULL )
+	p = _pico_new_parser((const picoByte_t*) buffer, bufSize);
+	if (p == NULL) {
 		return PICO_PMV_ERROR_MEMORY;
+	}
 
 	/* get first token */
-	if (_pico_parse_first(p) == NULL )
+	if (_pico_parse_first(p) == NULL) {
 		return PICO_PMV_ERROR_IDENT;
+	}
 
 	/* check first token */
 	if (_pico_stricmp(p->token, "picoterrain")) {
@@ -307,7 +312,7 @@ static int _terrain_canload ( PM_PARAMS_CANLOAD)
  loads a picoterrain file
  */
 
-static picoModel_t *_terrain_load ( PM_PARAMS_LOAD)
+static picoModel_t *_terrain_load (PM_PARAMS_LOAD)
 {
 	int i, j, v, pw[5], r;
 	picoParser_t *p;
@@ -326,23 +331,22 @@ static picoModel_t *_terrain_load ( PM_PARAMS_LOAD)
 	picoVec2_t st;
 	picoColor_t color;
 
-	/* keep the friggin compiler happy */
-	*fileName = *fileName;
-
 	/* create pico parser */
-	p = _pico_new_parser((picoByte_t*) buffer, bufSize);
-	if (p == NULL )
-		return NULL ;
+	p = _pico_new_parser((const picoByte_t*) buffer, bufSize);
+	if (p == NULL) {
+		return NULL;
+	}
 
 	/* get first token */
-	if (_pico_parse_first(p) == NULL )
-		return NULL ;
+	if (_pico_parse_first(p) == NULL) {
+		return NULL;
+	}
 
 	/* check first token */
 	if (_pico_stricmp(p->token, "picoterrain")) {
 		_pico_printf(PICO_ERROR, "Invalid PicoTerrain model");
 		_pico_free_parser(p);
-		return NULL ;
+		return NULL;
 	}
 
 	/* setup */
@@ -352,18 +356,21 @@ static picoModel_t *_terrain_load ( PM_PARAMS_LOAD)
 	/* parse ase model file */
 	while (1) {
 		/* get first token on line */
-		if (!_pico_parse_first(p))
+		if (!_pico_parse_first(p)) {
 			break;
+		}
 
 		/* skip empty lines */
-		if (!p->token || !p->token[0])
+		if (!p->token || !p->token[0]) {
 			continue;
+		}
 
 		/* shader */
 		if (!_pico_stricmp(p->token, "shader")) {
 			if (_pico_parse(p, 0) && p->token[0]) {
-				if (shader != NULL )
+				if (shader != NULL) {
 					_pico_free(shader);
+				}
 				shader = _pico_clone_alloc(p->token);
 			}
 		}
@@ -371,8 +378,9 @@ static picoModel_t *_terrain_load ( PM_PARAMS_LOAD)
 		/* heightmap */
 		else if (!_pico_stricmp(p->token, "heightmap")) {
 			if (_pico_parse(p, 0) && p->token[0]) {
-				if (heightmapFile != NULL )
+				if (heightmapFile != NULL) {
 					_pico_free(heightmapFile);
+				}
 				heightmapFile = _pico_clone_alloc(p->token);
 			}
 		}
@@ -380,8 +388,9 @@ static picoModel_t *_terrain_load ( PM_PARAMS_LOAD)
 		/* colormap */
 		else if (!_pico_stricmp(p->token, "colormap")) {
 			if (_pico_parse(p, 0) && p->token[0]) {
-				if (colormapFile != NULL )
+				if (colormapFile != NULL) {
 					_pico_free(colormapFile);
+				}
 				colormapFile = _pico_clone_alloc(p->token);
 			}
 		}
@@ -406,12 +415,14 @@ static picoModel_t *_terrain_load ( PM_PARAMS_LOAD)
 
 	if (heightmap == NULL || w < 2 || h < 2) {
 		_pico_printf(PICO_ERROR, "PicoTerrain model with invalid heightmap");
-		if (shader != NULL )
+		if (shader != NULL) {
 			_pico_free(shader);
-		if (colormapFile != NULL )
+		}
+		if (colormapFile != NULL) {
 			_pico_free(colormapFile);
+		}
 		_pico_free_parser(p);
-		return NULL ;
+		return NULL;
 	}
 
 	/* set origin (bottom lowest corner of terrain mesh) */
@@ -434,9 +445,9 @@ static picoModel_t *_terrain_load ( PM_PARAMS_LOAD)
 
 	/* create new pico model */
 	picoModel = PicoNewModel();
-	if (picoModel == NULL ) {
+	if (picoModel == NULL) {
 		_pico_printf(PICO_ERROR, "Unable to allocate a new model");
-		return NULL ;
+		return NULL;
 	}
 
 	/* do model setup */
@@ -447,10 +458,10 @@ static picoModel_t *_terrain_load ( PM_PARAMS_LOAD)
 
 	/* allocate new pico surface */
 	picoSurface = PicoNewSurface(picoModel);
-	if (picoSurface == NULL ) {
+	if (picoSurface == NULL) {
 		_pico_printf(PICO_ERROR, "Unable to allocate a new model surface");
 		PicoFreeModel(picoModel); /* sea */
-		return NULL ;
+		return NULL;
 	}
 
 	/* terrain surfaces are triangle meshes */
@@ -461,11 +472,11 @@ static picoModel_t *_terrain_load ( PM_PARAMS_LOAD)
 
 	/* create new pico shader */
 	picoShader = PicoNewShader(picoModel);
-	if (picoShader == NULL ) {
+	if (picoShader == NULL) {
 		_pico_printf(PICO_ERROR, "Unable to allocate a new model shader");
 		PicoFreeModel(picoModel);
 		_pico_free(shader);
-		return NULL ;
+		return NULL;
 	}
 
 	/* detox and set shader name */
@@ -502,10 +513,11 @@ static picoModel_t *_terrain_load ( PM_PARAMS_LOAD)
 			PicoSetSurfaceST(picoSurface, 0, v, st);
 
 			/* set color */
-			if (colorPixel != NULL )
+			if (colorPixel != NULL) {
 				_pico_set_color(color, colorPixel[0], colorPixel[1], colorPixel[2], colorPixel[3]);
-			else
+			} else {
 				_pico_set_color(color, 255, 255, 255, 255);
+			}
 			PicoSetSurfaceColor(picoSurface, 0, v, color);
 
 			/* set triangles (zero alpha in heightmap suppresses this quad) */

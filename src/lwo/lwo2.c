@@ -25,8 +25,9 @@
 void lwFreeLayer (lwLayer *layer)
 {
 	if (layer) {
-		if (layer->name)
+		if (layer->name) {
 			_pico_free(layer->name);
+		}
 		lwFreePoints(&layer->point);
 		lwFreePolygons(&layer->polygon);
 		lwListFree(layer->vmap, (void *) lwFreeVMap);
@@ -74,18 +75,19 @@ void lwFreeObject (lwObject *object)
  If you don't need this information, failID and failpos can be NULL.
  ====================================================================== */
 
-lwObject *lwGetObject (char *filename, picoMemStream_t *fp, unsigned int *failID, int *failpos)
+lwObject *lwGetObject (const char *filename, picoMemStream_t *fp, unsigned int *failID, int *failpos)
 {
 	lwObject *object;
 	lwLayer *layer;
 	lwNode *node;
-	unsigned int id, formsize, type, cksize;
-	int i, rlen;
+	unsigned int id, formsize, type;
+	int i, rlen, cksize;
 
 	/* open the file */
 
-	if (!fp)
-		return NULL ;
+	if (!fp) {
+		return NULL;
+	}
 
 	/* read the first 12 bytes */
 
@@ -94,44 +96,49 @@ lwObject *lwGetObject (char *filename, picoMemStream_t *fp, unsigned int *failID
 	formsize = getU4(fp);
 	type = getU4(fp);
 	if (12 != get_flen()) {
-		return NULL ;
+		return NULL;
 	}
 
 	/* is this a LW object? */
 
 	if (id != ID_FORM) {
-		if (failpos)
+		if (failpos) {
 			*failpos = 12;
-		return NULL ;
+		}
+		return NULL;
 	}
 
 	if (type != ID_LWO2) {
-		if (type == ID_LWOB)
+		if (type == ID_LWOB) {
 			return lwGetObject5(filename, fp, failID, failpos);
-		else {
-			if (failpos)
+		} else {
+			if (failpos) {
 				*failpos = 12;
-			return NULL ;
+			}
+			return NULL;
 		}
 	}
 
 	/* allocate an object and a default layer */
 
 	object = _pico_calloc(1, sizeof(lwObject));
-	if (!object)
+	if (!object) {
 		goto Fail;
+	}
 
 	layer = _pico_calloc(1, sizeof(lwLayer));
-	if (!layer)
+	if (!layer) {
 		goto Fail;
+	}
 	object->layer = layer;
 
 	/* get the first chunk header */
 
 	id = getU4(fp);
 	cksize = getU4(fp);
-	if (0 > get_flen())
+	if (0 > get_flen()) {
 		goto Fail;
+	}
 
 	/* process chunks as they're encountered */
 
@@ -142,8 +149,9 @@ lwObject *lwGetObject (char *filename, picoMemStream_t *fp, unsigned int *failID
 		case ID_LAYR:
 			if (object->nlayers > 0) {
 				layer = _pico_calloc(1, sizeof(lwLayer));
-				if (!layer)
+				if (!layer) {
 					goto Fail;
+				}
 				lwListAdd((void **) &object->layer, layer);
 			}
 			object->nlayers++;
@@ -157,37 +165,44 @@ lwObject *lwGetObject (char *filename, picoMemStream_t *fp, unsigned int *failID
 			layer->name = getS0(fp);
 
 			rlen = get_flen();
-			if (rlen < 0 || rlen > cksize)
+			if (rlen < 0 || rlen > cksize) {
 				goto Fail;
-			if (rlen <= cksize - 2)
+			}
+			if (rlen <= cksize - 2) {
 				layer->parent = getU2(fp);
+			}
 			rlen = get_flen();
-			if (rlen < cksize)
+			if (rlen < cksize) {
 				_pico_memstream_seek(fp, cksize - rlen, PICO_SEEK_CUR);
+			}
 			break;
 
 		case ID_PNTS:
-			if (!lwGetPoints(fp, cksize, &layer->point))
+			if (!lwGetPoints(fp, cksize, &layer->point)) {
 				goto Fail;
+			}
 			break;
 
 		case ID_POLS:
-			if (!lwGetPolygons(fp, cksize, &layer->polygon, layer->point.offset))
+			if (!lwGetPolygons(fp, cksize, &layer->polygon, layer->point.offset)) {
 				goto Fail;
+			}
 			break;
 
 		case ID_VMAP:
 		case ID_VMAD:
 			node = (lwNode *) lwGetVMap(fp, cksize, layer->point.offset, layer->polygon.offset, id == ID_VMAD);
-			if (!node)
+			if (!node) {
 				goto Fail;
+			}
 			lwListAdd((void **) &layer->vmap, node);
 			layer->nvmaps++;
 			break;
 
 		case ID_PTAG:
-			if (!lwGetPolygonTags(fp, cksize, &object->taglist, &layer->polygon))
+			if (!lwGetPolygonTags(fp, cksize, &object->taglist, &layer->polygon)) {
 				goto Fail;
+			}
 			break;
 
 		case ID_BBOX:
@@ -195,37 +210,43 @@ lwObject *lwGetObject (char *filename, picoMemStream_t *fp, unsigned int *failID
 			for (i = 0; i < 6; i++)
 				layer->bbox[i] = getF4(fp);
 			rlen = get_flen();
-			if (rlen < 0 || rlen > cksize)
+			if (rlen < 0 || rlen > cksize) {
 				goto Fail;
-			if (rlen < cksize)
+			}
+			if (rlen < cksize) {
 				_pico_memstream_seek(fp, cksize - rlen, PICO_SEEK_CUR);
+			}
 			break;
 
 		case ID_TAGS:
-			if (!lwGetTags(fp, cksize, &object->taglist))
+			if (!lwGetTags(fp, cksize, &object->taglist)) {
 				goto Fail;
+			}
 			break;
 
 		case ID_ENVL:
 			node = (lwNode *) lwGetEnvelope(fp, cksize);
-			if (!node)
+			if (!node) {
 				goto Fail;
+			}
 			lwListAdd((void **) &object->env, node);
 			object->nenvs++;
 			break;
 
 		case ID_CLIP:
 			node = (lwNode *) lwGetClip(fp, cksize);
-			if (!node)
+			if (!node) {
 				goto Fail;
+			}
 			lwListAdd((void **) &object->clip, node);
 			object->nclips++;
 			break;
 
 		case ID_SURF:
 			node = (lwNode *) lwGetSurface(fp, cksize);
-			if (!node)
+			if (!node) {
 				goto Fail;
+			}
 			lwListAdd((void **) &object->surf, node);
 			object->nsurfs++;
 			break;
@@ -240,63 +261,73 @@ lwObject *lwGetObject (char *filename, picoMemStream_t *fp, unsigned int *failID
 
 		/* end of the file? */
 
-		if (formsize <= _pico_memstream_tell(fp) - 8)
+		if (formsize <= (unsigned int) (_pico_memstream_tell(fp) - 8)) {
 			break;
+		}
 
 		/* get the next chunk header */
 
 		set_flen(0);
 		id = getU4(fp);
 		cksize = getU4(fp);
-		if (8 != get_flen())
+		if (8 != get_flen()) {
 			goto Fail;
+		}
 	}
 
-	if (object->nlayers == 0)
+	if (object->nlayers == 0) {
 		object->nlayers = 1;
+	}
 
 	layer = object->layer;
 	while (layer) {
 		lwGetBoundingBox(&layer->point, layer->bbox);
 		lwGetPolyNormals(&layer->point, &layer->polygon);
-		if (!lwGetPointPolygons(&layer->point, &layer->polygon))
+		if (!lwGetPointPolygons(&layer->point, &layer->polygon)) {
 			goto Fail;
-		if (!lwResolvePolySurfaces(&layer->polygon, &object->taglist, &object->surf, &object->nsurfs))
+		}
+		if (!lwResolvePolySurfaces(&layer->polygon, &object->taglist, &object->surf, &object->nsurfs)) {
 			goto Fail;
+		}
 		lwGetVertNormals(&layer->point, &layer->polygon);
-		if (!lwGetPointVMaps(&layer->point, layer->vmap))
+		if (!lwGetPointVMaps(&layer->point, layer->vmap)) {
 			goto Fail;
-		if (!lwGetPolyVMaps(&layer->polygon, layer->vmap))
+		}
+		if (!lwGetPolyVMaps(&layer->polygon, layer->vmap)) {
 			goto Fail;
+		}
 		layer = layer->next;
 	}
 
 	return object;
 
-	Fail: if (failID)
+	Fail: if (failID) {
 		*failID = id;
+	}
 	if (fp) {
-		if (failpos)
+		if (failpos) {
 			*failpos = _pico_memstream_tell(fp);
+		}
 	}
 	lwFreeObject(object);
-	return NULL ;
+	return NULL;
 }
 
-int lwValidateObject (char *filename, picoMemStream_t *fp, unsigned int *failID, int *failpos)
+int lwValidateObject (const char *filename, picoMemStream_t *fp, unsigned int *failID, int *failpos)
 {
-	unsigned int id, formsize, type;
+	unsigned int id, type;
 
 	/* open the file */
 
-	if (!fp)
+	if (!fp) {
 		return PICO_PMV_ERROR_MEMORY;
+	}
 
 	/* read the first 12 bytes */
 
 	set_flen(0);
 	id = getU4(fp);
-	formsize = getU4(fp);
+	/* formsize = */getU4(fp);
 	type = getU4(fp);
 	if (12 != get_flen()) {
 		return PICO_PMV_ERROR_SIZE;
@@ -305,17 +336,19 @@ int lwValidateObject (char *filename, picoMemStream_t *fp, unsigned int *failID,
 	/* is this a LW object? */
 
 	if (id != ID_FORM) {
-		if (failpos)
+		if (failpos) {
 			*failpos = 12;
+		}
 		return PICO_PMV_ERROR_SIZE;
 	}
 
 	if (type != ID_LWO2) {
-		if (type == ID_LWOB)
+		if (type == ID_LWOB) {
 			return lwValidateObject5(filename, fp, failID, failpos);
-		else {
-			if (failpos)
+		} else {
+			if (failpos) {
 				*failpos = 12;
+			}
 			return PICO_PMV_ERROR_IDENT;
 		}
 	}
