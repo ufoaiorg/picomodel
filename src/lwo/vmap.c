@@ -20,15 +20,19 @@
 void lwFreeVMap (lwVMap *vmap)
 {
 	if (vmap) {
-		if (vmap->name)
+		if (vmap->name) {
 			_pico_free(vmap->name);
-		if (vmap->vindex)
+		}
+		if (vmap->vindex) {
 			_pico_free(vmap->vindex);
-		if (vmap->pindex)
+		}
+		if (vmap->pindex) {
 			_pico_free(vmap->pindex);
+		}
 		if (vmap->val) {
-			if (vmap->val[0])
+			if (vmap->val[0]) {
 				_pico_free(vmap->val[0]);
+			}
 			_pico_free(vmap->val);
 		}
 		_pico_free(vmap);
@@ -53,8 +57,9 @@ lwVMap *lwGetVMap (picoMemStream_t *fp, int cksize, int ptoffset, int poloffset,
 
 	set_flen(0);
 	buf = getbytes(fp, cksize);
-	if (!buf)
+	if (!buf) {
 		return NULL;
+	}
 
 	vmap = _pico_calloc(1, sizeof(lwVMap));
 	if (!vmap) {
@@ -78,8 +83,9 @@ lwVMap *lwGetVMap (picoMemStream_t *fp, int cksize, int ptoffset, int poloffset,
 	npts = 0;
 	while (bp < buf + cksize) {
 		i = sgetVX(&bp);
-		if (perpoly)
+		if (perpoly) {
 			i = sgetVX(&bp);
+		}
 		bp += vmap->dim * sizeof(float);
 		++npts;
 	}
@@ -88,21 +94,25 @@ lwVMap *lwGetVMap (picoMemStream_t *fp, int cksize, int ptoffset, int poloffset,
 
 	vmap->nverts = npts;
 	vmap->vindex = _pico_calloc(npts, sizeof(int));
-	if (!vmap->vindex)
+	if (!vmap->vindex) {
 		goto Fail;
+	}
 	if (perpoly) {
 		vmap->pindex = _pico_calloc(npts, sizeof(int));
-		if (!vmap->pindex)
+		if (!vmap->pindex) {
 			goto Fail;
+		}
 	}
 
 	if (vmap->dim > 0) {
 		vmap->val = _pico_calloc(npts, sizeof(float *));
-		if (!vmap->val)
+		if (!vmap->val) {
 			goto Fail;
+		}
 		f = _pico_alloc(npts * vmap->dim * sizeof(float));
-		if (!f)
+		if (!f) {
 			goto Fail;
+		}
 		for (i = 0; i < npts; i++)
 			vmap->val[i] = f + i * vmap->dim;
 	}
@@ -112,8 +122,9 @@ lwVMap *lwGetVMap (picoMemStream_t *fp, int cksize, int ptoffset, int poloffset,
 	bp = buf + rlen;
 	for (i = 0; i < npts; i++) {
 		vmap->vindex[i] = sgetVX(&bp);
-		if (perpoly)
+		if (perpoly) {
 			vmap->pindex[i] = sgetVX(&bp);
+		}
 		for (j = 0; j < vmap->dim; j++)
 			vmap->val[i][j] = sgetF4(&bp);
 	}
@@ -121,8 +132,9 @@ lwVMap *lwGetVMap (picoMemStream_t *fp, int cksize, int ptoffset, int poloffset,
 	_pico_free(buf);
 	return vmap;
 
-	Fail: if (buf)
+	Fail: if (buf) {
 		_pico_free(buf);
+	}
 	lwFreeVMap(vmap);
 	return NULL;
 }
@@ -143,9 +155,10 @@ int lwGetPointVMaps (lwPointList *point, lwVMap *vmap)
 
 	vm = vmap;
 	while (vm) {
-		if (!vm->perpoly)
+		if (!vm->perpoly) {
 			for (i = 0; i < vm->nverts; i++)
 				++point->pt[vm->vindex[i]].nvmaps;
+		}
 		vm = vm->next;
 	}
 
@@ -154,8 +167,9 @@ int lwGetPointVMaps (lwPointList *point, lwVMap *vmap)
 	for (i = 0; i < point->count; i++) {
 		if (point->pt[i].nvmaps) {
 			point->pt[i].vm = _pico_calloc(point->pt[i].nvmaps, sizeof(lwVMapPt));
-			if (!point->pt[i].vm)
+			if (!point->pt[i].vm) {
 				return 0;
+			}
 			point->pt[i].nvmaps = 0;
 		}
 	}
@@ -217,8 +231,9 @@ int lwGetPolyVMaps (lwPolygonList *polygon, lwVMap *vmap)
 			pv = &polygon->pol[i].v[j];
 			if (pv->nvmaps) {
 				pv->vm = _pico_calloc(pv->nvmaps, sizeof(lwVMapPt));
-				if (!pv->vm)
+				if (!pv->vm) {
 					return 0;
+				}
 				pv->nvmaps = 0;
 			}
 		}

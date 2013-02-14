@@ -57,18 +57,18 @@
 static picoColor_t white = { 255, 255, 255, 255 };
 
 /* ms3d limits */
-#define MS3D_MAX_VERTS		8192
-#define MS3D_MAX_TRIS		16384
-#define MS3D_MAX_GROUPS		128
-#define MS3D_MAX_MATERIALS	128
-#define MS3D_MAX_JOINTS		128
-#define MS3D_MAX_KEYFRAMES	216
+#define MS3D_MAX_VERTS      8192
+#define MS3D_MAX_TRIS       16384
+#define MS3D_MAX_GROUPS     128
+#define MS3D_MAX_MATERIALS  128
+#define MS3D_MAX_JOINTS     128
+#define MS3D_MAX_KEYFRAMES  216
 
 /* ms3d flags */
-#define MS3D_SELECTED		1
-#define MS3D_HIDDEN			2
-#define MS3D_SELECTED2		4
-#define MS3D_DIRTY			8
+#define MS3D_SELECTED       1
+#define MS3D_HIDDEN         2
+#define MS3D_SELECTED2      4
+#define MS3D_DIRTY          8
 
 /* this freaky loader needs byte alignment */
 #pragma pack(push, 1)
@@ -149,21 +149,20 @@ typedef struct SMsKeyframe {
  */
 static int _ms3d_canload (PM_PARAMS_CANLOAD)
 {
-	TMsHeader *hdr;
-
-	/* to keep the compiler happy */
-	*fileName = *fileName;
+	const TMsHeader *hdr;
 
 	/* sanity check */
-	if (bufSize < sizeof(TMsHeader))
+	if ((size_t) bufSize < sizeof(TMsHeader)) {
 		return PICO_PMV_ERROR_SIZE;
+	}
 
 	/* get ms3d header */
-	hdr = (TMsHeader *) buffer;
+	hdr = (const TMsHeader *) buffer;
 
 	/* check ms3d magic */
-	if (strncmp(hdr->magic, "MS3D000000", 10) != 0)
+	if (strncmp(hdr->magic, "MS3D000000", 10) != 0) {
 		return PICO_PMV_ERROR_IDENT;
+	}
 
 	/* check ms3d version */
 	if (_pico_little_long(hdr->version) < 3 || _pico_little_long(hdr->version) > 4) {
@@ -177,10 +176,8 @@ static int _ms3d_canload (PM_PARAMS_CANLOAD)
 static unsigned char *GetWord (unsigned char *bufptr, int *out)
 {
 	if (bufptr == NULL) {
-		*out = 0;
 		return NULL;
 	}
-
 	*out = _pico_little_short(*(unsigned short *) bufptr);
 	return (bufptr + 2);
 }
@@ -191,7 +188,7 @@ static unsigned char *GetWord (unsigned char *bufptr, int *out)
 static picoModel_t *_ms3d_load (PM_PARAMS_LOAD)
 {
 	picoModel_t *model;
-	unsigned char *bufptr;
+	unsigned char *bufptr, *bufptr0;
 	int shaderRefs[MS3D_MAX_GROUPS];
 	int numGroups;
 	int numMaterials;
@@ -204,16 +201,19 @@ static picoModel_t *_ms3d_load (PM_PARAMS_LOAD)
 
 	/* create new pico model */
 	model = PicoNewModel();
-	if (model == NULL)
+	if (model == NULL) {
 		return NULL;
+	}
 
 	/* do model setup */
 	PicoSetModelFrameNum(model, frameNum);
 	PicoSetModelName(model, fileName);
 	PicoSetModelFileName(model, fileName);
 
+	bufptr0 = bufptr = (picoByte_t*) _pico_alloc(bufSize);
+	memcpy(bufptr, buffer, bufSize);
 	/* skip header */
-	bufptr = (unsigned char *) buffer + sizeof(TMsHeader);
+	bufptr += sizeof(TMsHeader);
 
 	/* get number of vertices */
 	bufptr = GetWord(bufptr, &numVerts);
@@ -233,10 +233,10 @@ static picoModel_t *_ms3d_load (PM_PARAMS_LOAD)
 		vertex->xyz[2] = _pico_little_float(vertex->xyz[2]);
 
 #ifdef DEBUG_PM_MS3D_EX_
-		printf("Vertex: x: %f y: %f z: %f\n",
+		printf( "Vertex: x: %f y: %f z: %f\n",
 				msvd[i]->vertex[0],
 				msvd[i]->vertex[1],
-				msvd[i]->vertex[2]);
+				msvd[i]->vertex[2] );
 #endif
 	}
 	/* get number of triangles */
@@ -271,6 +271,7 @@ static picoModel_t *_ms3d_load (PM_PARAMS_LOAD)
 				_pico_printf(PICO_ERROR, "Vertex %d index %d out of range (%d, max %d)", i, k,
 						triangle->vertexIndices[k], numVerts - 1);
 				PicoFreeModel(model);
+				_pico_free(bufptr0);
 				return NULL; /* yuck */
 			}
 		}
@@ -302,6 +303,7 @@ static picoModel_t *_ms3d_load (PM_PARAMS_LOAD)
 		surface = PicoNewSurface(model);
 		if (surface == NULL) {
 			PicoFreeModel(model);
+			_pico_free(bufptr0);
 			return NULL;
 		}
 		/* do surface setup */
@@ -324,27 +326,19 @@ static picoModel_t *_ms3d_load (PM_PARAMS_LOAD)
 				TMsVertex *vertex;
 				unsigned int vertexIndex;
 				picoVec2_t texCoord;
-				picoVec3_t vertexXYZ;
-				picoVec3_t vertexNormals;
 
 				/* get ptr to vertex data */
 				vertexIndex = triangle->vertexIndices[m];
 				vertex = (TMsVertex *) (ptrToVerts + (sizeof(TMsVertex) * vertexIndex));
 
 				/* store vertex origin */
-				vertexXYZ[0] = vertex->xyz[0];
-				vertexXYZ[1] = vertex->xyz[1];
-				vertexXYZ[2] = vertex->xyz[2];
-				PicoSetSurfaceXYZ(surface, vertexIndex, vertexXYZ);
+				PicoSetSurfaceXYZ(surface, vertexIndex, vertex->xyz);
 
 				/* store vertex color */
 				PicoSetSurfaceColor(surface, 0, vertexIndex, white);
 
 				/* store vertex normal */
-				vertexNormals[0] = triangle->vertexNormals[m][0];
-				vertexNormals[1] = triangle->vertexNormals[m][1];
-				vertexNormals[2] = triangle->vertexNormals[m][2];
-				PicoSetSurfaceNormal(surface, vertexIndex, vertexNormals);
+				PicoSetSurfaceNormal(surface, vertexIndex, triangle->vertexNormals[m]);
 
 				/* store current face vertex index */
 				PicoSetSurfaceIndex(surface, (k * 3 + (2 - m)), (picoIndex_t) vertexIndex);
@@ -399,6 +393,7 @@ static picoModel_t *_ms3d_load (PM_PARAMS_LOAD)
 		shader = PicoNewShader(model);
 		if (shader == NULL) {
 			PicoFreeModel(model);
+			_pico_free(bufptr0);
 			return NULL;
 		}
 		/* scale shader colors */
@@ -434,18 +429,21 @@ static picoModel_t *_ms3d_load (PM_PARAMS_LOAD)
 		picoShader_t *shader;
 
 		/* sanity check */
-		if (shaderRefs[i] >= MS3D_MAX_MATERIALS || shaderRefs[i] < 0)
+		if (shaderRefs[i] >= MS3D_MAX_MATERIALS || shaderRefs[i] < 0) {
 			continue;
+		}
 
 		/* get surface */
 		surface = PicoGetModelSurface(model, i);
-		if (surface == NULL)
+		if (surface == NULL) {
 			continue;
+		}
 
 		/* get shader */
 		shader = PicoGetModelShader(model, shaderRefs[i]);
-		if (shader == NULL)
+		if (shader == NULL) {
 			continue;
+		}
 
 		/* assign shader */
 		PicoSetSurfaceShader(surface, shader);
@@ -455,7 +453,9 @@ static picoModel_t *_ms3d_load (PM_PARAMS_LOAD)
 #endif
 	}
 	/* return allocated pico model */
+	_pico_free(bufptr0);
 	return model;
+//	return NULL;
 }
 
 /* pico file format module definition */

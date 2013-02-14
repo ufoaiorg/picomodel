@@ -63,10 +63,11 @@ typedef struct index_DUP_LUT_s {
 static int _fm_canload (PM_PARAMS_CANLOAD)
 {
 	fm_t fm;
-	unsigned char *bb;
+	unsigned char *bb, *bb0;
 	int fm_file_pos;
 
-	bb = (unsigned char *) buffer;
+	bb0 = bb = (picoByte_t*) _pico_alloc(bufSize);
+	memcpy(bb, buffer, bufSize);
 
 	// Header
 	fm.fm_header_hdr = (fm_chunk_header_t *) bb;
@@ -76,16 +77,18 @@ static int _fm_canload (PM_PARAMS_CANLOAD)
 #endif
 	if ((strcmp(fm.fm_header_hdr->ident, FM_HEADERCHUNKNAME))) {
 #ifdef FM_DBG
-		_pico_printf( PICO_WARNING, "FM Header Ident incorrect\n");
+		_pico_printf( PICO_WARNING, "FM Header Ident incorrect\n" );
 #endif
+		_pico_free(bb0);
 		return PICO_PMV_ERROR_IDENT;
 	}
 
 	// check fm
 	if (_pico_little_long(fm.fm_header_hdr->version) != FM_HEADERCHUNKVER) {
 #ifdef FM_DBG
-		_pico_printf( PICO_WARNING, "FM Header Version incorrect\n");
+		_pico_printf( PICO_WARNING, "FM Header Version incorrect\n" );
 #endif
+		_pico_free(bb0);
 		return PICO_PMV_ERROR_VERSION;
 	}
 
@@ -97,16 +100,18 @@ static int _fm_canload (PM_PARAMS_CANLOAD)
 #endif
 	if ((strcmp(fm.fm_skin_hdr->ident, FM_SKINCHUNKNAME))) {
 #ifdef FM_DBG
-		_pico_printf( PICO_WARNING, "FM Skin Ident incorrect\n");
+		_pico_printf( PICO_WARNING, "FM Skin Ident incorrect\n" );
 #endif
+		_pico_free(bb0);
 		return PICO_PMV_ERROR_IDENT;
 	}
 
 	// check fm
 	if (_pico_little_long(fm.fm_skin_hdr->version) != FM_SKINCHUNKVER) {
 #ifdef FM_DBG
-		_pico_printf( PICO_WARNING, "FM Skin Version incorrect\n");
+		_pico_printf( PICO_WARNING, "FM Skin Version incorrect\n" );
 #endif
+		_pico_free(bb0);
 		return PICO_PMV_ERROR_VERSION;
 	}
 
@@ -118,16 +123,18 @@ static int _fm_canload (PM_PARAMS_CANLOAD)
 #endif
 	if ((strcmp(fm.fm_st_hdr->ident, FM_STCOORDCHUNKNAME))) {
 #ifdef FM_DBG
-		_pico_printf( PICO_WARNING, "FM ST Ident incorrect\n");
+		_pico_printf( PICO_WARNING, "FM ST Ident incorrect\n" );
 #endif
+		_pico_free(bb0);
 		return PICO_PMV_ERROR_IDENT;
 	}
 
 	// check fm
 	if (_pico_little_long(fm.fm_st_hdr->version) != FM_STCOORDCHUNKVER) {
 #ifdef FM_DBG
-		_pico_printf( PICO_WARNING, "FM ST Version incorrect\n");
+		_pico_printf( PICO_WARNING, "FM ST Version incorrect\n" );
 #endif
+		_pico_free(bb0);
 		return PICO_PMV_ERROR_VERSION;
 	}
 
@@ -139,16 +146,18 @@ static int _fm_canload (PM_PARAMS_CANLOAD)
 #endif
 	if ((strcmp(fm.fm_tri_hdr->ident, FM_TRISCHUNKNAME))) {
 #ifdef FM_DBG
-		_pico_printf( PICO_WARNING, "FM Tri Ident incorrect\n");
+		_pico_printf( PICO_WARNING, "FM Tri Ident incorrect\n" );
 #endif
+		_pico_free(bb0);
 		return PICO_PMV_ERROR_IDENT;
 	}
 
 	// check fm
 	if (_pico_little_long(fm.fm_tri_hdr->version) != FM_TRISCHUNKVER) {
 #ifdef FM_DBG
-		_pico_printf( PICO_WARNING, "FM Tri Version incorrect\n");
+		_pico_printf( PICO_WARNING, "FM Tri Version incorrect\n" );
 #endif
+		_pico_free(bb0);
 		return PICO_PMV_ERROR_VERSION;
 	}
 
@@ -160,16 +169,18 @@ static int _fm_canload (PM_PARAMS_CANLOAD)
 #endif
 	if ((strcmp(fm.fm_frame_hdr->ident, FM_FRAMESCHUNKNAME))) {
 #ifdef FM_DBG
-		_pico_printf( PICO_WARNING, "FM Frame Ident incorrect\n");
+		_pico_printf( PICO_WARNING, "FM Frame Ident incorrect\n" );
 #endif
+		_pico_free(bb0);
 		return PICO_PMV_ERROR_IDENT;
 	}
 
 	// check fm
 	if (_pico_little_long(fm.fm_frame_hdr->version) != FM_FRAMESCHUNKVER) {
 #ifdef FM_DBG
-		_pico_printf( PICO_WARNING, "FM Frame Version incorrect\n");
+		_pico_printf( PICO_WARNING, "FM Frame Version incorrect\n" );
 #endif
+		_pico_free(bb0);
 		return PICO_PMV_ERROR_VERSION;
 	}
 
@@ -182,7 +193,6 @@ static picoModel_t *_fm_load (PM_PARAMS_LOAD)
 {
 	int i, j, dups, dup_index;
 	int fm_file_pos;
-	short tot_numVerts;
 	index_LUT_t *p_index_LUT, *p_index_LUT2, *p_index_LUT3;
 	index_DUP_LUT_t *p_index_LUT_DUPS;
 
@@ -196,7 +206,7 @@ static picoModel_t *_fm_load (PM_PARAMS_LOAD)
 	fm_xyz_st_t *triangle;
 	fm_frame_t *frame;
 
-	picoByte_t *bb;
+	picoByte_t *bb, *bb0;
 	picoModel_t *picoModel;
 	picoSurface_t *picoSurface;
 	picoShader_t *picoShader;
@@ -204,18 +214,21 @@ static picoModel_t *_fm_load (PM_PARAMS_LOAD)
 	picoVec2_t st;
 	picoColor_t color;
 
-	bb = (picoByte_t*) buffer;
+	bb0 = bb = (picoByte_t*) _pico_alloc(bufSize);
+	memcpy(bb, buffer, bufSize);
 
 	// Header Header
 	fm.fm_header_hdr = (fm_chunk_header_t *) bb;
 	fm_file_pos = sizeof(fm_chunk_header_t) + fm.fm_header_hdr->size;
 	if ((strcmp(fm.fm_header_hdr->ident, FM_HEADERCHUNKNAME))) {
 		_pico_printf(PICO_WARNING, "FM Header Ident incorrect\n");
+		_pico_free(bb0);
 		return NULL;
 	}
 
 	if (_pico_little_long(fm.fm_header_hdr->version) != FM_HEADERCHUNKVER) {
 		_pico_printf(PICO_WARNING, "FM Header Version incorrect\n");
+		_pico_free(bb0);
 		return NULL;
 	}
 
@@ -224,11 +237,13 @@ static picoModel_t *_fm_load (PM_PARAMS_LOAD)
 	fm_file_pos += sizeof(fm_chunk_header_t) + fm.fm_skin_hdr->size;
 	if ((strcmp(fm.fm_skin_hdr->ident, FM_SKINCHUNKNAME))) {
 		_pico_printf(PICO_WARNING, "FM Skin Ident incorrect\n");
+		_pico_free(bb0);
 		return NULL;
 	}
 
 	if (_pico_little_long(fm.fm_skin_hdr->version) != FM_SKINCHUNKVER) {
 		_pico_printf(PICO_WARNING, "FM Skin Version incorrect\n");
+		_pico_free(bb0);
 		return NULL;
 	}
 
@@ -237,11 +252,13 @@ static picoModel_t *_fm_load (PM_PARAMS_LOAD)
 	fm_file_pos += sizeof(fm_chunk_header_t) + fm.fm_st_hdr->size;
 	if ((strcmp(fm.fm_st_hdr->ident, FM_STCOORDCHUNKNAME))) {
 		_pico_printf(PICO_WARNING, "FM ST Ident incorrect\n");
+		_pico_free(bb0);
 		return NULL;
 	}
 
 	if (_pico_little_long(fm.fm_st_hdr->version) != FM_STCOORDCHUNKVER) {
 		_pico_printf(PICO_WARNING, "FM ST Version incorrect\n");
+		_pico_free(bb0);
 		return NULL;
 	}
 
@@ -250,11 +267,13 @@ static picoModel_t *_fm_load (PM_PARAMS_LOAD)
 	fm_file_pos += sizeof(fm_chunk_header_t) + fm.fm_tri_hdr->size;
 	if ((strcmp(fm.fm_tri_hdr->ident, FM_TRISCHUNKNAME))) {
 		_pico_printf(PICO_WARNING, "FM Tri Ident incorrect\n");
+		_pico_free(bb0);
 		return NULL;
 	}
 
 	if (_pico_little_long(fm.fm_tri_hdr->version) != FM_TRISCHUNKVER) {
 		_pico_printf(PICO_WARNING, "FM Tri Version incorrect\n");
+		_pico_free(bb0);
 		return NULL;
 	}
 
@@ -263,11 +282,13 @@ static picoModel_t *_fm_load (PM_PARAMS_LOAD)
 	fm_file_pos += sizeof(fm_chunk_header_t);
 	if ((strcmp(fm.fm_frame_hdr->ident, FM_FRAMESCHUNKNAME))) {
 		_pico_printf(PICO_WARNING, "FM Frame Ident incorrect\n");
+		_pico_free(bb0);
 		return NULL;
 	}
 
 	if (_pico_little_long(fm.fm_frame_hdr->version) != FM_FRAMESCHUNKVER) {
 		_pico_printf(PICO_WARNING, "FM Frame Version incorrect\n");
+		_pico_free(bb0);
 		return NULL;
 	}
 
@@ -298,11 +319,13 @@ static picoModel_t *_fm_load (PM_PARAMS_LOAD)
 	// do frame check
 	if (fm_head->numFrames < 1) {
 		_pico_printf(PICO_ERROR, "%s has 0 frames!", fileName);
+		_pico_free(bb0);
 		return NULL;
 	}
 
 	if (frameNum < 0 || frameNum >= fm_head->numFrames) {
 		_pico_printf(PICO_ERROR, "Invalid or out-of-range FM frame specified");
+		_pico_free(bb0);
 		return NULL;
 	}
 
@@ -339,11 +362,11 @@ static picoModel_t *_fm_load (PM_PARAMS_LOAD)
 		texCoord->t = _pico_little_short(texCoord[i].t);
 	}
 	// set Skin Name
-	strncpy(skinname, fm.fm_skin->path, FM_SKINPATHSIZE);
+	strncpy(skinname, (const char *) fm.fm_skin, FM_SKINPATHSIZE);
 
 #ifdef FM_VERBOSE_DBG
 	// Print out md2 values
-	_pico_printf(PICO_VERBOSE,"numSkins->%d  numXYZ->%d  numST->%d  numTris->%d  numFrames->%d\nSkin Name \"%s\"\n", fm_head->numSkins, fm_head->numXYZ, fm_head->numST, fm_head->numTris, fm_head->numFrames, &skinname );
+	_pico_printf( PICO_VERBOSE,"numSkins->%d  numXYZ->%d  numST->%d  numTris->%d  numFrames->%d\nSkin Name \"%s\"\n", fm_head->numSkins, fm_head->numXYZ, fm_head->numST, fm_head->numTris, fm_head->numFrames, &skinname );
 #endif
 
 	// detox Skin name
@@ -354,6 +377,7 @@ static picoModel_t *_fm_load (PM_PARAMS_LOAD)
 	picoModel = PicoNewModel();
 	if (picoModel == NULL) {
 		_pico_printf(PICO_ERROR, "Unable to allocate a new model");
+		_pico_free(bb0);
 		return NULL;
 	}
 
@@ -368,6 +392,7 @@ static picoModel_t *_fm_load (PM_PARAMS_LOAD)
 	if (picoSurface == NULL) {
 		_pico_printf(PICO_ERROR, "Unable to allocate a new model surface");
 		PicoFreeModel(picoModel);
+		_pico_free(bb0);
 		return NULL;
 	}
 
@@ -377,6 +402,7 @@ static picoModel_t *_fm_load (PM_PARAMS_LOAD)
 	if (picoShader == NULL) {
 		_pico_printf(PICO_ERROR, "Unable to allocate a new model shader");
 		PicoFreeModel(picoModel);
+		_pico_free(bb0);
 		return NULL;
 	}
 
@@ -394,32 +420,32 @@ static picoModel_t *_fm_load (PM_PARAMS_LOAD)
 	}
 
 	// Fill in Look Up Table, and allocate/fill Linked List from vert array as needed for dup STs per Vert.
-	tot_numVerts = fm_head->numXYZ;
 	dups = 0;
 	triangle = tri_verts;
 
 	for (i = 0; i < fm_head->numTris; i++) {
 		for (j = 0; j < 3; j++) {
-			if (p_index_LUT[triangle->index_xyz[j]].ST == -1) // No Main Entry
+			if (p_index_LUT[triangle->index_xyz[j]].ST == -1) { // No Main Entry
 				p_index_LUT[triangle->index_xyz[j]].ST = triangle->index_st[j];
+			}
 
-			else if (triangle->index_st[j] == p_index_LUT[triangle->index_xyz[j]].ST) // Equal to Main Entry
-					{
+			else if (triangle->index_st[j] == p_index_LUT[triangle->index_xyz[j]].ST) { // Equal to Main Entry
 #ifdef FM_VERBOSE_DBG
-				_pico_printf( PICO_NORMAL, "-> Tri #%d, Vert %d:\t XYZ:%d   ST:%d\n", i, j, triangle->index_xyz[j], triangle->index_st[j]);
+					_pico_printf( PICO_NORMAL, "-> Tri #%d, Vert %d:\t XYZ:%d   ST:%d\n", i, j, triangle->index_xyz[j], triangle->index_st[j] );
 #endif
 				continue;
-			} else if ((p_index_LUT[triangle->index_xyz[j]].next == NULL)) // Not equal to Main entry, and no LL entry
-			{ // Add first entry of LL from Main
+			} else if ((p_index_LUT[triangle->index_xyz[j]].next == NULL)) { // Not equal to Main entry, and no LL entry
+				// Add first entry of LL from Main
 				p_index_LUT2 = (index_LUT_t *) _pico_alloc(sizeof(index_LUT_t));
-				if (p_index_LUT2 == NULL)
+				if (p_index_LUT2 == NULL) {
 					_pico_printf(PICO_NORMAL, " Couldn't allocate memory!\n");
+				}
 				p_index_LUT[triangle->index_xyz[j]].next = (index_LUT_t *) p_index_LUT2;
 				p_index_LUT2->Vert = dups;
 				p_index_LUT2->ST = triangle->index_st[j];
 				p_index_LUT2->next = NULL;
 #ifdef FM_VERBOSE_DBG
-				_pico_printf( PICO_NORMAL, " ADDING first LL XYZ:%d DUP:%d ST:%d\n", triangle->index_xyz[j], dups, triangle->index_st[j]);
+				_pico_printf( PICO_NORMAL, " ADDING first LL XYZ:%d DUP:%d ST:%d\n", triangle->index_xyz[j], dups, triangle->index_st[j] );
 #endif
 				triangle->index_xyz[j] = dups + fm_head->numXYZ; // Make change in Tri hunk
 				dups++;
@@ -433,35 +459,34 @@ static picoModel_t *_fm_load (PM_PARAMS_LOAD)
 				}
 				p_index_LUT2 = p_index_LUT3;
 
-				if (triangle->index_st[j] == p_index_LUT2->ST) // Found it
-						{
+				if (triangle->index_st[j] == p_index_LUT2->ST) { // Found it
 					triangle->index_xyz[j] =
 							p_index_LUT2->Vert + fm_head->numXYZ; // Make change in Tri hunk
 #ifdef FM_VERBOSE_DBG
-									_pico_printf( PICO_NORMAL, "--> Tri #%d, Vert %d:\t XYZ:%d   ST:%d\n", i, j, triangle->index_xyz[j], triangle->index_st[j]);
+									_pico_printf( PICO_NORMAL, "--> Tri #%d, Vert %d:\t XYZ:%d   ST:%d\n", i, j, triangle->index_xyz[j], triangle->index_st[j] );
 #endif
 					continue;
 				}
 
-				if (p_index_LUT2->next == NULL) // Didn't find it. Add entry to LL.
-				{
+				if (p_index_LUT2->next == NULL) { // Didn't find it. Add entry to LL.
 					// Add the Entry
 					p_index_LUT3 = (index_LUT_t *) _pico_alloc(sizeof(index_LUT_t));
-					if (p_index_LUT3 == NULL)
+					if (p_index_LUT3 == NULL) {
 						_pico_printf(PICO_NORMAL, " Couldn't allocate memory!\n");
+					}
 					p_index_LUT2->next = (index_LUT_t *) p_index_LUT3;
 					p_index_LUT3->Vert = dups;
 					p_index_LUT3->ST = triangle->index_st[j];
 					p_index_LUT3->next = NULL;
 #ifdef FM_VERBOSE_DBG
-					_pico_printf( PICO_NORMAL, " ADDING additional LL XYZ:%d DUP:%d NewXYZ:%d ST:%d\n", triangle->index_xyz[j], dups, dups + (fm_head->numXYZ), triangle->index_st[j]);
+					_pico_printf( PICO_NORMAL, " ADDING additional LL XYZ:%d DUP:%d NewXYZ:%d ST:%d\n", triangle->index_xyz[j], dups, dups + ( fm_head->numXYZ ), triangle->index_st[j] );
 #endif
 					triangle->index_xyz[j] = dups + fm_head->numXYZ; // Make change in Tri hunk
 					dups++;
 				}
 			}
 #ifdef FM_VERBOSE_DBG
-			_pico_printf( PICO_NORMAL, "---> Tri #%d, Vert %d:\t XYZ:%d   ST:%d\n", i, j, triangle->index_xyz[j], triangle->index_st[j]);
+			_pico_printf( PICO_NORMAL, "---> Tri #%d, Vert %d:\t XYZ:%d   ST:%d\n", i, j, triangle->index_xyz[j], triangle->index_st[j] );
 #endif
 		}
 		triangle++;
@@ -469,8 +494,9 @@ static picoModel_t *_fm_load (PM_PARAMS_LOAD)
 
 	// malloc and build array for Dup STs
 	p_index_LUT_DUPS = (index_DUP_LUT_t *) _pico_alloc(sizeof(index_DUP_LUT_t) * dups);
-	if (p_index_LUT_DUPS == NULL)
+	if (p_index_LUT_DUPS == NULL) {
 		_pico_printf(PICO_NORMAL, " Couldn't allocate memory!\n");
+	}
 
 	dup_index = 0;
 	for (i = 0; i < fm_head->numXYZ; i++) {
@@ -483,39 +509,39 @@ static picoModel_t *_fm_load (PM_PARAMS_LOAD)
 		}
 	}
 #ifdef FM_VERBOSE_DBG
-	_pico_printf( PICO_NORMAL, " Dups = %d\n", dups);
-	_pico_printf( PICO_NORMAL, " Dup Index = %d\n", dup_index);
+	_pico_printf( PICO_NORMAL, " Dups = %d\n", dups );
+	_pico_printf( PICO_NORMAL, " Dup Index = %d\n", dup_index );
 #endif
 	for (i = 0; i < fm_head->numXYZ; i++) {
 #ifdef FM_VERBOSE_DBG
-		_pico_printf( PICO_NORMAL, "Vert: %4d\t%4d",i, p_index_LUT[i].ST);
+		_pico_printf( PICO_NORMAL, "Vert: %4d\t%4d",i, p_index_LUT[i].ST );
 #endif
 		if (p_index_LUT[i].next != NULL) {
 
 			p_index_LUT2 = p_index_LUT[i].next;
 			do {
 #ifdef FM_VERBOSE_DBG
-				_pico_printf( PICO_NORMAL, " %4d %4d", p_index_LUT2->Vert, p_index_LUT2->ST);
+				_pico_printf( PICO_NORMAL, " %4d %4d", p_index_LUT2->Vert, p_index_LUT2->ST );
 #endif
 				p_index_LUT2 = p_index_LUT2->next;
 			} while (p_index_LUT2 != NULL);
 
 		}
 #ifdef FM_VERBOSE_DBG
-		_pico_printf( PICO_NORMAL, "\n");
+		_pico_printf( PICO_NORMAL, "\n" );
 #endif
 	}
 
 #ifdef FM_VERBOSE_DBG
-	for(i=0; i<dup_index; i++)
-	_pico_printf( PICO_NORMAL, " Dup Index #%d  OldVert: %d  ST: %d\n", i, p_index_LUT_DUPS[i].OldVert, p_index_LUT_DUPS[i].ST);
+	for ( i = 0; i < dup_index; i++ )
+	_pico_printf( PICO_NORMAL, " Dup Index #%d  OldVert: %d  ST: %d\n", i, p_index_LUT_DUPS[i].OldVert, p_index_LUT_DUPS[i].ST );
 
 	triangle = tri_verts;
-	for(i=0; i<fm_head->numTris; i++)
+	for ( i = 0; i < fm_head->numTris; i++ )
 	{
-		for(j=0; j<3; j++)
-		_pico_printf( PICO_NORMAL, "Tri #%d, Vert %d:\t XYZ:%d   ST:%d\n", i, j, triangle->index_xyz[j], triangle->index_st[j]);
-		_pico_printf( PICO_NORMAL, "\n");
+		for ( j = 0; j < 3; j++ )
+		_pico_printf( PICO_NORMAL, "Tri #%d, Vert %d:\t XYZ:%d   ST:%d\n", i, j, triangle->index_xyz[j], triangle->index_st[j] );
+		_pico_printf( PICO_NORMAL, "\n" );
 		triangle++;
 	}
 #endif
@@ -585,14 +611,16 @@ static picoModel_t *_fm_load (PM_PARAMS_LOAD)
 		}
 	}
 
-	if (dups)
+	if (dups) {
 		_pico_printf(PICO_WARNING, " Not all LL mallocs freed\n");
+	}
 
 	// Free malloc'ed LUTs
 	_pico_free(p_index_LUT);
 	_pico_free(p_index_LUT_DUPS);
 
 	/* return the new pico model */
+	_pico_free(bb0);
 	return picoModel;
 
 }

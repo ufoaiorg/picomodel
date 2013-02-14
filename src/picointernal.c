@@ -41,13 +41,12 @@
 
 /* dependencies */
 #include <string.h>
-#include <stdlib.h>
 #include "picointernal.h"
 
 /* function pointers */
 void *(*_pico_ptr_malloc) (size_t) = malloc;
 void (*_pico_ptr_free) (void*) = free;
-void (*_pico_ptr_load_file) (char*, unsigned char**, int*) = NULL;
+void (*_pico_ptr_load_file) (const char*, unsigned char**, int*) = NULL;
 void (*_pico_ptr_free_file) (void*) = NULL;
 void (*_pico_ptr_print) (int, const char*) = NULL;
 
@@ -64,15 +63,18 @@ void *_pico_alloc (size_t size)
 	void *ptr;
 
 	/* some sanity checks */
-	if (size == 0)
+	if (size == 0) {
 		return NULL;
-	if (_pico_ptr_malloc == NULL)
+	}
+	if (_pico_ptr_malloc == NULL) {
 		return NULL;
+	}
 
 	/* allocate memory */
 	ptr = _pico_ptr_malloc(size);
-	if (ptr == NULL)
+	if (ptr == NULL) {
 		return NULL;
+	}
 
 	/* zero out allocated memory */
 	memset(ptr, 0, size);
@@ -89,15 +91,18 @@ void *_pico_calloc (size_t num, size_t size)
 	void *ptr;
 
 	/* some sanity checks */
-	if (num == 0 || size == 0)
+	if (num == 0 || size == 0) {
 		return NULL;
-	if (_pico_ptr_malloc == NULL)
+	}
+	if (_pico_ptr_malloc == NULL) {
 		return NULL;
+	}
 
 	/* allocate memory */
 	ptr = _pico_ptr_malloc(num * size);
-	if (ptr == NULL)
+	if (ptr == NULL) {
 		return NULL;
+	}
 
 	/* zero out allocated memory */
 	memset(ptr, 0, num * size);
@@ -115,17 +120,21 @@ void *_pico_realloc (void **ptr, size_t oldSize, size_t newSize)
 	void *ptr2;
 
 	/* sanity checks */
-	if (ptr == NULL)
+	if (ptr == NULL) {
 		return NULL;
-	if (newSize < oldSize)
+	}
+	if (newSize < oldSize) {
 		return *ptr;
-	if (_pico_ptr_malloc == NULL)
+	}
+	if (_pico_ptr_malloc == NULL) {
 		return NULL;
+	}
 
 	/* allocate new pointer */
 	ptr2 = _pico_alloc(newSize);
-	if (ptr2 == NULL)
+	if (ptr2 == NULL) {
 		return NULL;
+	}
 
 	/* copy */
 	if (*ptr != NULL) {
@@ -152,13 +161,15 @@ char *_pico_clone_alloc (const char *str)
 	char* cloned;
 
 	/* sanity check */
-	if (str == NULL)
+	if (str == NULL) {
 		return NULL;
+	}
 
 	/* allocate memory */
 	cloned = _pico_alloc(strlen(str) + 1);
-	if (cloned == NULL)
+	if (cloned == NULL) {
 		return NULL;
+	}
 
 	/* copy input string to cloned string */
 	strcpy(cloned, str);
@@ -173,10 +184,12 @@ char *_pico_clone_alloc (const char *str)
 void _pico_free (void *ptr)
 {
 	/* sanity checks */
-	if (ptr == NULL)
+	if (ptr == NULL) {
 		return;
-	if (_pico_ptr_free == NULL)
+	}
+	if (_pico_ptr_free == NULL) {
 		return;
+	}
 
 	/* free the allocated memory */
 	_pico_ptr_free(ptr);
@@ -185,7 +198,7 @@ void _pico_free (void *ptr)
 /* _pico_load_file:
  * wrapper around the loadfile function pointer
  */
-void _pico_load_file (char *name, unsigned char **buffer, int *bufSize)
+void _pico_load_file (const char *name, unsigned char **buffer, int *bufSize)
 {
 	/* sanity checks */
 	if (name == NULL) {
@@ -207,8 +220,9 @@ void _pico_load_file (char *name, unsigned char **buffer, int *bufSize)
 void _pico_free_file (void *buffer)
 {
 	/* sanity checks */
-	if (buffer == NULL)
+	if (buffer == NULL) {
 		return;
+	}
 
 	/* use default free */
 	if (_pico_ptr_free_file == NULL) {
@@ -228,10 +242,12 @@ void _pico_printf (int level, const char *format, ...)
 	va_list argptr;
 
 	/* sanity checks */
-	if (format == NULL)
+	if (format == NULL) {
 		return;
-	if (_pico_ptr_print == NULL)
+	}
+	if (_pico_ptr_print == NULL) {
 		return;
+	}
 
 	/* format string */
 	va_start( argptr, format);
@@ -239,8 +255,9 @@ void _pico_printf (int level, const char *format, ...)
 	va_end( argptr);
 
 	/* remove linefeeds */
-	if (str[strlen(str) - 1] == '\n')
+	if (str[strlen(str) - 1] == '\n') {
 		str[strlen(str) - 1] = '\0';
+	}
 
 	/* do the actual call */
 	_pico_ptr_print(level, str);
@@ -252,8 +269,9 @@ void _pico_printf (int level, const char *format, ...)
 
 void _pico_first_token (char *str)
 {
-	if (!str || !*str)
+	if (!str || !*str) {
 		return;
+	}
 	while (*str && !isspace( *str ))
 		str++;
 	*str = '\0';
@@ -266,11 +284,12 @@ char *_pico_strltrim (char *str)
 {
 	char *str1 = str, *str2 = str;
 
-	while (isspace(*str2))
+	while (isspace( *str2 ))
 		str2++;
-	if (str2 != str)
+	if (str2 != str) {
 		while (*str2 != '\0') /* fix: ydnar */
 			*str1++ = *str2++;
+	}
 	return str;
 }
 
@@ -284,15 +303,16 @@ char *_pico_strrtrim (char *str)
 		int allspace = 1;
 
 		while (*str1) {
-			if (allspace && !isspace(*str1))
+			if (allspace && !isspace( *str1 )) {
 				allspace = 0;
+			}
 			str1++;
 		}
-		if (allspace)
+		if (allspace) {
 			*str = '\0';
-		else {
+		} else {
 			str1--;
-			while ((isspace(*str1)) && (str1 >= str))
+			while ((isspace( *str1 )) && (str1 >= str))
 				*str1-- = '\0';
 		}
 	}
@@ -320,8 +340,9 @@ int _pico_strchcount (char *str, int ch)
 {
 	int count = 0;
 	while (*str++)
-		if (*str == ch)
+		if (*str == ch) {
 			count++;
+		}
 	return count;
 }
 
@@ -339,10 +360,12 @@ void _pico_expand_bounds (picoVec3_t p, picoVec3_t mins, picoVec3_t maxs)
 	int i;
 	for (i = 0; i < 3; i++) {
 		float value = p[i];
-		if (value < mins[i])
+		if (value < mins[i]) {
 			mins[i] = value;
-		if (value > maxs[i])
+		}
+		if (value > maxs[i]) {
 			maxs[i] = value;
+		}
 	}
 }
 
@@ -361,14 +384,14 @@ void _pico_zero_vec4 (picoVec4_t vec)
 	vec[0] = vec[1] = vec[2] = vec[3] = 0;
 }
 
-void _pico_set_vec (picoVec3_t v, double a, double b, double c)
+void _pico_set_vec (picoVec3_t v, float a, float b, float c)
 {
 	v[0] = a;
 	v[1] = b;
 	v[2] = c;
 }
 
-void _pico_set_vec4 (picoVec4_t v, double a, double b, double c, double d)
+void _pico_set_vec4 (picoVec4_t v, float a, float b, float c, float d)
 {
 	v[0] = a;
 	v[1] = b;
@@ -403,8 +426,9 @@ picoVec_t _pico_normalize_vec (picoVec3_t vec)
 	double len, ilen;
 
 	len = sqrt(vec[0] * vec[0] + vec[1] * vec[1] + vec[2] * vec[2]);
-	if (len == 0.0)
+	if (len == 0.0) {
 		return 0.0;
+	}
 	ilen = 1.0 / len;
 	vec[0] *= (picoVec_t) ilen;
 	vec[1] *= (picoVec_t) ilen;
@@ -483,26 +507,23 @@ void _pico_copy_color (picoColor_t src, picoColor_t dest)
 
 #ifdef __BIG_ENDIAN__
 
-int _pico_big_long ( int src ) {return src;}
+int _pico_big_long( int src ) {return src;}
 short _pico_big_short( short src ) {return src;}
 float _pico_big_float( float src ) {return src;}
 
-int _pico_little_long( int src )
-{
-	return ((src & 0xFF000000) >> 24) |
-	((src & 0x00FF0000) >> 8) |
-	((src & 0x0000FF00) << 8) |
-	((src & 0x000000FF) << 24);
+int _pico_little_long( int src ) {
+	return ( ( src & 0xFF000000 ) >> 24 ) |
+	( ( src & 0x00FF0000 ) >> 8 ) |
+	( ( src & 0x0000FF00 ) << 8 ) |
+	( ( src & 0x000000FF ) << 24 );
 }
 
-short _pico_little_short( short src )
-{
-	return ((src & 0xFF00) >> 8) |
-	((src & 0x00FF) << 8);
+short _pico_little_short( short src ) {
+	return ( ( src & 0xFF00 ) >> 8 ) |
+	( ( src & 0x00FF ) << 8 );
 }
 
-float _pico_little_float( float src )
-{
+float _pico_little_float( float src ) {
 	floatSwapUnion in,out;
 	in.f = src;
 	out.c[ 0 ] = in.c[ 3 ];
@@ -552,16 +573,18 @@ float _pico_big_float (float src)
 /* _pico_stristr:
  *  case-insensitive strstr. -sea
  */
-char *_pico_stristr (char *str, const char *substr)
+const char *_pico_stristr (const char *str, const char *substr)
 {
 	const size_t sublen = strlen(substr);
 	while (*str) {
-		if (!_pico_strnicmp(str, substr, sublen))
+		if (!_pico_strnicmp(str, substr, sublen)) {
 			break;
+		}
 		str++;
 	}
-	if (!(*str))
+	if (!(*str)) {
 		str = NULL;
+	}
 	return str;
 }
 
@@ -572,11 +595,13 @@ char *_pico_stristr (char *str, const char *substr)
 
 void _pico_unixify (char *path)
 {
-	if (path == NULL)
+	if (path == NULL) {
 		return;
+	}
 	while (*path) {
-		if (*path == '\\')
+		if (*path == '\\') {
 			*path = '/';
+		}
 		path++;
 	}
 }
@@ -617,14 +642,17 @@ const char *_pico_nopath (const char *path)
 	const char *src;
 	src = path + (strlen(path) - 1);
 
-	if (path == NULL)
+	if (path == NULL) {
 		return "";
-	if (!strchr(path, '/') && !strchr(path, '\\'))
+	}
+	if (!strchr(path, '/') && !strchr(path, '\\')) {
 		return (path);
+	}
 
 	while ((src--) != path) {
-		if (*src == '/' || *src == '\\')
+		if (*src == '/' || *src == '\\') {
 			return (++src);
+		}
 	}
 	return "";
 }
@@ -641,16 +669,20 @@ char *_pico_setfext (char *path, const char *ext)
 
 	src = path + (strlen(path) - 1);
 
-	if (ext == NULL)
+	if (ext == NULL) {
 		ext = "";
-	if (strlen(ext) < 1)
+	}
+	if (strlen(ext) < 1) {
 		remfext = 1;
-	if (strlen(path) < 1)
+	}
+	if (strlen(path) < 1) {
 		return path;
+	}
 
 	while ((src--) != path) {
-		if (*src == '/' || *src == '\\')
+		if (*src == '/' || *src == '\\') {
 			return path;
+		}
 
 		if (*src == '.') {
 			if (remfext) {
@@ -676,13 +708,15 @@ int _pico_getline (char *buf, int bufsize, char *dest, int destsize)
 	int pos;
 
 	/* check output */
-	if (dest == NULL || destsize < 1)
+	if (dest == NULL || destsize < 1) {
 		return -1;
+	}
 	memset(dest, 0, destsize);
 
 	/* check input */
-	if (buf == NULL || bufsize < 1)
+	if (buf == NULL || bufsize < 1) {
 		return -1;
+	}
 
 	/* get next line */
 	for (pos = 0; pos < bufsize && pos < destsize; pos++) {
@@ -705,8 +739,9 @@ int _pico_getline (char *buf, int bufsize, char *dest, int destsize)
 void _pico_parse_skip_white (picoParser_t *p, int *hasLFs)
 {
 	/* sanity checks */
-	if (p == NULL || p->cursor == NULL)
+	if (p == NULL || p->cursor == NULL) {
 		return;
+	}
 
 	/* skin white spaces */
 	while (1) {
@@ -715,10 +750,12 @@ void _pico_parse_skip_white (picoParser_t *p, int *hasLFs)
 			return;
 		}
 		/* break for chars other than white spaces */
-		if (*p->cursor > 0x20)
+		if (*p->cursor > 0x20) {
 			break;
-		if (*p->cursor == 0x00)
+		}
+		if (*p->cursor == 0x00) {
 			return;
+		}
 
 		/* a bit of linefeed handling */
 		if (*p->cursor == '\n') {
@@ -733,18 +770,20 @@ void _pico_parse_skip_white (picoParser_t *p, int *hasLFs)
 /* _pico_new_parser:
  *  allocates a new ascii parser object.
  */
-picoParser_t *_pico_new_parser (picoByte_t *buffer, int bufSize)
+picoParser_t *_pico_new_parser (const picoByte_t *buffer, int bufSize)
 {
 	picoParser_t *p;
 
 	/* sanity check */
-	if (buffer == NULL || bufSize <= 0)
+	if (buffer == NULL || bufSize <= 0) {
 		return NULL;
+	}
 
 	/* allocate reader */
 	p = _pico_alloc(sizeof(picoParser_t));
-	if (p == NULL)
+	if (p == NULL) {
 		return NULL;
+	}
 	memset(p, 0, sizeof(picoParser_t));
 
 	/* allocate token space */
@@ -756,8 +795,8 @@ picoParser_t *_pico_new_parser (picoByte_t *buffer, int bufSize)
 		return NULL;
 	}
 	/* setup */
-	p->buffer = (char*) buffer;
-	p->cursor = (char*) buffer;
+	p->buffer = (const char *) buffer;
+	p->cursor = (const char *) buffer;
 	p->bufSize = bufSize;
 	p->max = p->buffer + bufSize;
 	p->curLine = 1; /* sea: new */
@@ -772,8 +811,9 @@ picoParser_t *_pico_new_parser (picoByte_t *buffer, int bufSize)
 void _pico_free_parser (picoParser_t *p)
 {
 	/* sanity check */
-	if (p == NULL)
+	if (p == NULL) {
 		return;
+	}
 
 	/* free the parser */
 	if (p->token != NULL) {
@@ -793,7 +833,7 @@ void _pico_free_parser (picoParser_t *p)
 int _pico_parse_ex (picoParser_t *p, int allowLFs, int handleQuoted)
 {
 	int hasLFs = 0;
-	char *old;
+	const char *old;
 
 	/* sanity checks */
 	if (p == NULL || p->buffer == NULL || p->cursor < p->buffer || p->cursor >= p->max) {
@@ -858,12 +898,14 @@ int _pico_parse_ex (picoParser_t *p, int allowLFs, int handleQuoted)
 char *_pico_parse_first (picoParser_t *p)
 {
 	/* sanity check */
-	if (p == NULL)
+	if (p == NULL) {
 		return NULL;
+	}
 
 	/* try to read next token (with lfs & quots) */
-	if (!_pico_parse_ex(p, 1, 1))
+	if (!_pico_parse_ex(p, 1, 1)) {
 		return NULL;
+	}
 
 	/* return ptr to the token string */
 	return p->token;
@@ -877,12 +919,14 @@ char *_pico_parse_first (picoParser_t *p)
 char *_pico_parse (picoParser_t *p, int allowLFs)
 {
 	/* sanity check */
-	if (p == NULL)
+	if (p == NULL) {
 		return NULL;
+	}
 
 	/* try to read next token (with quots) */
-	if (!_pico_parse_ex(p, allowLFs, 1))
+	if (!_pico_parse_ex(p, allowLFs, 1)) {
 		return NULL;
+	}
 
 	/* return ptr to the token string */
 	return p->token;
@@ -909,8 +953,9 @@ int _pico_parse_skip_braced (picoParser_t *p)
 	int level;
 
 	/* sanity check */
-	if (p == NULL)
+	if (p == NULL) {
 		return 0;
+	}
 
 	/* set the initial level for parsing */
 	level = 0;
@@ -932,14 +977,17 @@ int _pico_parse_skip_braced (picoParser_t *p)
 
 		/* update level */
 		if (p->token[1] == '\0') {
-			if (p->token[0] == '{')
+			if (p->token[0] == '{') {
 				level++;
-			if (p->token[0] == '}')
+			}
+			if (p->token[0] == '}') {
 				level--;
+			}
 		}
 		/* break if we're back at our starting level */
-		if (level == 0)
+		if (level == 0) {
 			break;
+		}
 	}
 	/* successfully skipped braced section */
 	return 1;
@@ -947,19 +995,23 @@ int _pico_parse_skip_braced (picoParser_t *p)
 
 int _pico_parse_check (picoParser_t *p, int allowLFs, char *str)
 {
-	if (!_pico_parse_ex(p, allowLFs, 1))
+	if (!_pico_parse_ex(p, allowLFs, 1)) {
 		return 0;
-	if (!strcmp(p->token, str))
+	}
+	if (!strcmp(p->token, str)) {
 		return 1;
+	}
 	return 0;
 }
 
 int _pico_parse_checki (picoParser_t *p, int allowLFs, char *str)
 {
-	if (!_pico_parse_ex(p, allowLFs, 1))
+	if (!_pico_parse_ex(p, allowLFs, 1)) {
 		return 0;
-	if (!_pico_stricmp(p->token, str))
+	}
+	if (!_pico_stricmp(p->token, str)) {
 		return 1;
+	}
 	return 0;
 }
 
@@ -968,14 +1020,16 @@ int _pico_parse_int (picoParser_t *p, int *out)
 	char *token;
 
 	/* sanity checks */
-	if (p == NULL || out == NULL)
+	if (p == NULL || out == NULL) {
 		return 0;
+	}
 
 	/* get token and turn it into an integer */
 	*out = 0;
 	token = _pico_parse(p, 0);
-	if (token == NULL)
+	if (token == NULL) {
 		return 0;
+	}
 	*out = atoi(token);
 
 	/* success */
@@ -987,14 +1041,16 @@ int _pico_parse_int_def (picoParser_t *p, int *out, int def)
 	char *token;
 
 	/* sanity checks */
-	if (p == NULL || out == NULL)
+	if (p == NULL || out == NULL) {
 		return 0;
+	}
 
 	/* get token and turn it into an integer */
 	*out = def;
 	token = _pico_parse(p, 0);
-	if (token == NULL)
+	if (token == NULL) {
 		return 0;
+	}
 	*out = atoi(token);
 
 	/* success */
@@ -1006,14 +1062,16 @@ int _pico_parse_float (picoParser_t *p, float *out)
 	char *token;
 
 	/* sanity checks */
-	if (p == NULL || out == NULL)
+	if (p == NULL || out == NULL) {
 		return 0;
+	}
 
 	/* get token and turn it into a float */
 	*out = 0.0f;
 	token = _pico_parse(p, 0);
-	if (token == NULL)
+	if (token == NULL) {
 		return 0;
+	}
 	*out = (float) atof(token);
 
 	/* success */
@@ -1025,53 +1083,17 @@ int _pico_parse_float_def (picoParser_t *p, float *out, float def)
 	char *token;
 
 	/* sanity checks */
-	if (p == NULL || out == NULL)
+	if (p == NULL || out == NULL) {
 		return 0;
+	}
 
 	/* get token and turn it into a float */
 	*out = def;
 	token = _pico_parse(p, 0);
-	if (token == NULL)
+	if (token == NULL) {
 		return 0;
+	}
 	*out = (float) atof(token);
-
-	/* success */
-	return 1;
-}
-
-int _pico_parse_double (picoParser_t *p, double *out)
-{
-	char *token;
-
-	/* sanity checks */
-	if (p == NULL || out == NULL)
-		return 0;
-
-	/* get token and turn it into a double */
-	*out = 0;
-	token = _pico_parse(p, 0);
-	if (token == NULL)
-		return 0;
-	*out = (double) strtod(token, NULL);
-
-	/* success */
-	return 1;
-}
-
-int _pico_parse_double_def (picoParser_t *p, double *out, double def)
-{
-	char *token;
-
-	/* sanity checks */
-	if (p == NULL || out == NULL)
-		return 0;
-
-	/* get token and turn it into a double */
-	*out = def;
-	token = _pico_parse(p, 0);
-	if (token == NULL)
-		return 0;
-	*out = (double) strtod(token, NULL);
 
 	/* success */
 	return 1;
@@ -1083,8 +1105,9 @@ int _pico_parse_vec (picoParser_t *p, picoVec3_t out)
 	int i;
 
 	/* sanity checks */
-	if (p == NULL || out == NULL)
+	if (p == NULL || out == NULL) {
 		return 0;
+	}
 
 	/* zero out outination vector */
 	_pico_zero_vec(out);
@@ -1108,8 +1131,9 @@ int _pico_parse_vec_def (picoParser_t *p, picoVec3_t out, picoVec3_t def)
 	int i;
 
 	/* sanity checks */
-	if (p == NULL || out == NULL)
+	if (p == NULL || out == NULL) {
 		return 0;
+	}
 
 	/* assign default vector value */
 	_pico_copy_vec(def, out);
@@ -1133,8 +1157,9 @@ int _pico_parse_vec2 (picoParser_t *p, picoVec2_t out)
 	int i;
 
 	/* sanity checks */
-	if (p == NULL || out == NULL)
+	if (p == NULL || out == NULL) {
 		return 0;
+	}
 
 	/* zero out outination vector */
 	_pico_zero_vec2(out);
@@ -1158,8 +1183,9 @@ int _pico_parse_vec2_def (picoParser_t *p, picoVec2_t out, picoVec2_t def)
 	int i;
 
 	/* sanity checks */
-	if (p == NULL || out == NULL)
+	if (p == NULL || out == NULL) {
 		return 0;
+	}
 
 	/* assign default vector value */
 	_pico_copy_vec2(def, out);
@@ -1183,8 +1209,9 @@ int _pico_parse_vec4 (picoParser_t *p, picoVec4_t out)
 	int i;
 
 	/* sanity checks */
-	if (p == NULL || out == NULL)
+	if (p == NULL || out == NULL) {
 		return 0;
+	}
 
 	/* zero out outination vector */
 	_pico_zero_vec4(out);
@@ -1208,8 +1235,9 @@ int _pico_parse_vec4_def (picoParser_t *p, picoVec4_t out, picoVec4_t def)
 	int i;
 
 	/* sanity checks */
-	if (p == NULL || out == NULL)
+	if (p == NULL || out == NULL) {
 		return 0;
+	}
 
 	/* assign default vector value */
 	_pico_copy_vec4(def, out);
@@ -1230,18 +1258,20 @@ int _pico_parse_vec4_def (picoParser_t *p, picoVec4_t out, picoVec4_t def)
 /* _pico_new_memstream:
  *  allocates a new memorystream object.
  */
-picoMemStream_t *_pico_new_memstream (picoByte_t *buffer, int bufSize)
+picoMemStream_t *_pico_new_memstream (const picoByte_t *buffer, int bufSize)
 {
 	picoMemStream_t *s;
 
 	/* sanity check */
-	if (buffer == NULL || bufSize <= 0)
+	if (buffer == NULL || bufSize <= 0) {
 		return NULL;
+	}
 
 	/* allocate stream */
 	s = _pico_alloc(sizeof(picoMemStream_t));
-	if (s == NULL)
+	if (s == NULL) {
 		return NULL;
+	}
 	memset(s, 0, sizeof(picoMemStream_t));
 
 	/* setup */
@@ -1260,8 +1290,9 @@ picoMemStream_t *_pico_new_memstream (picoByte_t *buffer, int bufSize)
 void _pico_free_memstream (picoMemStream_t *s)
 {
 	/* sanity check */
-	if (s == NULL)
+	if (s == NULL) {
 		return;
+	}
 
 	/* free the stream */
 	_pico_free(s);
@@ -1275,8 +1306,9 @@ int _pico_memstream_read (picoMemStream_t *s, void *buffer, int len)
 	int ret = 1;
 
 	/* sanity checks */
-	if (s == NULL || buffer == NULL)
+	if (s == NULL || buffer == NULL) {
 		return 0;
+	}
 
 	if (s->curPos + len > s->buffer + s->bufSize) {
 		s->flag |= PICO_IOEOF;
@@ -1298,12 +1330,14 @@ int _pico_memstream_getc (picoMemStream_t *s)
 	int c = 0;
 
 	/* sanity check */
-	if (s == NULL)
+	if (s == NULL) {
 		return -1;
+	}
 
 	/* read the character */
-	if (_pico_memstream_read(s, &c, 1) == 0)
+	if (_pico_memstream_read(s, &c, 1) == 0) {
 		return -1;
+	}
 
 	return c;
 }
@@ -1316,8 +1350,9 @@ int _pico_memstream_seek (picoMemStream_t *s, long offset, int origin)
 	int overflow;
 
 	/* sanity check */
-	if (s == NULL)
+	if (s == NULL) {
 		return -1;
+	}
 
 	if (origin == PICO_SEEK_SET) {
 		s->curPos = s->buffer + offset;
@@ -1354,8 +1389,9 @@ int _pico_memstream_seek (picoMemStream_t *s, long offset, int origin)
 long _pico_memstream_tell (picoMemStream_t *s)
 {
 	/* sanity check */
-	if (s == NULL)
+	if (s == NULL) {
 		return -1;
+	}
 
 	return s->curPos - s->buffer;
 }

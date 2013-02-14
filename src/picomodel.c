@@ -78,8 +78,9 @@ int PicoError (void)
 
 void PicoSetMallocFunc (void *(*func) (size_t))
 {
-	if (func != NULL)
+	if (func != NULL) {
 		_pico_ptr_malloc = func;
+	}
 }
 
 /*
@@ -89,8 +90,9 @@ void PicoSetMallocFunc (void *(*func) (size_t))
 
 void PicoSetFreeFunc (void (*func) (void*))
 {
-	if (func != NULL)
+	if (func != NULL) {
 		_pico_ptr_free = func;
+	}
 }
 
 /*
@@ -98,10 +100,11 @@ void PicoSetFreeFunc (void (*func) (void*))
  sets the ptr to the file load function
  */
 
-void PicoSetLoadFileFunc (void (*func) (char*, unsigned char**, int*))
+void PicoSetLoadFileFunc (void (*func) (const char*, unsigned char**, int*))
 {
-	if (func != NULL)
+	if (func != NULL) {
 		_pico_ptr_load_file = func;
+	}
 }
 
 /*
@@ -111,8 +114,9 @@ void PicoSetLoadFileFunc (void (*func) (char*, unsigned char**, int*))
 
 void PicoSetFreeFileFunc (void (*func) (void*))
 {
-	if (func != NULL)
+	if (func != NULL) {
 		_pico_ptr_free_file = func;
+	}
 }
 
 /*
@@ -122,11 +126,13 @@ void PicoSetFreeFileFunc (void (*func) (void*))
 
 void PicoSetPrintFunc (void (*func) (int, const char*))
 {
-	if (func != NULL)
+	if (func != NULL) {
 		_pico_ptr_print = func;
+	}
 }
 
-picoModel_t *PicoModuleLoadModel (const picoModule_t* pm, char* fileName, picoByte_t* buffer, int bufSize, int frameNum)
+picoModel_t *PicoModuleLoadModel (const picoModule_t* pm, const char* fileName, picoByte_t* buffer, int bufSize,
+		int frameNum)
 {
 	char *modelFileName, *remapFileName;
 
@@ -173,7 +179,7 @@ picoModel_t *PicoModuleLoadModel (const picoModule_t* pm, char* fileName, picoBy
  the meat and potatoes function
  */
 
-picoModel_t *PicoLoadModel (char *fileName, int frameNum)
+picoModel_t *PicoLoadModel (const char *fileName, int frameNum)
 {
 	const picoModule_t **modules, *pm;
 	picoModel_t *model;
@@ -206,12 +212,14 @@ picoModel_t *PicoLoadModel (char *fileName, int frameNum)
 		pm = *modules;
 
 		/* sanity check */
-		if (pm == NULL)
+		if (pm == NULL) {
 			break;
+		}
 
 		/* module must be able to load */
-		if (pm->canload == NULL || pm->load == NULL)
+		if (pm->canload == NULL || pm->load == NULL) {
 			continue;
+		}
 
 		model = PicoModuleLoadModel(pm, fileName, buffer, bufSize, frameNum);
 		if (model != NULL) {
@@ -221,15 +229,16 @@ picoModel_t *PicoLoadModel (char *fileName, int frameNum)
 	}
 
 	/* free memory used by file buffer */
-	if (buffer)
+	if (buffer) {
 		_pico_free_file(buffer);
+	}
 
 	/* return */
 	return model;
 }
 
 picoModel_t *PicoModuleLoadModelStream (const picoModule_t* module, void* inputStream,
-		PicoInputStreamReadFunc inputStreamRead, size_t streamLength, int frameNum)
+		PicoInputStreamReadFunc inputStreamRead, size_t streamLength, int frameNum, const char *fileName)
 {
 	picoModel_t *model;
 	picoByte_t *buffer;
@@ -253,14 +262,7 @@ picoModel_t *PicoModuleLoadModelStream (const picoModule_t* module, void* inputS
 	bufSize = (int) inputStreamRead(inputStream, buffer, streamLength);
 	buffer[bufSize] = '\0';
 
-	{
-		// dummy filename
-		char fileName[128];
-		fileName[0] = '.';
-		strncpy(fileName + 1, module->defaultExts[0], 126);
-		fileName[127] = '\0';
-		model = PicoModuleLoadModel(module, fileName, buffer, bufSize, frameNum);
-	}
+	model = PicoModuleLoadModel(module, fileName, buffer, bufSize, frameNum);
 
 	if (model != 0) {
 		_pico_free(buffer);
@@ -285,8 +287,9 @@ picoModel_t *PicoNewModel (void)
 
 	/* allocate */
 	model = _pico_alloc(sizeof(picoModel_t));
-	if (model == NULL)
+	if (model == NULL) {
 		return NULL;
+	}
 
 	/* clear */
 	memset(model, 0, sizeof(picoModel_t));
@@ -311,15 +314,18 @@ void PicoFreeModel (picoModel_t *model)
 	int i;
 
 	/* sanity check */
-	if (model == NULL)
+	if (model == NULL) {
 		return;
+	}
 
 	/* free bits */
-	if (model->name)
+	if (model->name) {
 		_pico_free(model->name);
+	}
 
-	if (model->fileName)
+	if (model->fileName) {
 		_pico_free(model->fileName);
+	}
 
 	/* free shaders */
 	for (i = 0; i < model->numShaders; i++)
@@ -344,39 +350,46 @@ void PicoFreeModel (picoModel_t *model)
 int PicoAdjustModel (picoModel_t *model, int numShaders, int numSurfaces)
 {
 	/* dummy check */
-	if (model == NULL)
+	if (model == NULL) {
 		return 0;
+	}
 
 	/* bare minimums */
 	/* sea: null surface/shader fix (1s=>0s) */
-	if (numShaders < 0)
+	if (numShaders < 0) {
 		numShaders = 0;
-	if (numSurfaces < 0)
+	}
+	if (numSurfaces < 0) {
 		numSurfaces = 0;
+	}
 
 	/* additional shaders? */
 	while (numShaders > model->maxShaders) {
 		model->maxShaders += PICO_GROW_SHADERS;
 		if (!_pico_realloc((void *) &model->shader, model->numShaders * sizeof(*model->shader),
-				model->maxShaders * sizeof(*model->shader)))
+				model->maxShaders * sizeof(*model->shader))) {
 			return 0;
+		}
 	}
 
 	/* set shader count to higher */
-	if (numShaders > model->numShaders)
+	if (numShaders > model->numShaders) {
 		model->numShaders = numShaders;
+	}
 
 	/* additional surfaces? */
 	while (numSurfaces > model->maxSurfaces) {
 		model->maxSurfaces += PICO_GROW_SURFACES;
 		if (!_pico_realloc((void *) &model->surface, model->numSurfaces * sizeof(*model->surface),
-				model->maxSurfaces * sizeof(*model->surface)))
+				model->maxSurfaces * sizeof(*model->surface))) {
 			return 0;
+		}
 	}
 
 	/* set shader count to higher */
-	if (numSurfaces > model->numSurfaces)
+	if (numSurfaces > model->numSurfaces) {
 		model->numSurfaces = numSurfaces;
+	}
 
 	/* return ok */
 	return 1;
@@ -397,8 +410,9 @@ picoShader_t *PicoNewShader (picoModel_t *model)
 
 	/* allocate and clear */
 	shader = _pico_alloc(sizeof(picoShader_t));
-	if (shader == NULL)
+	if (shader == NULL) {
 		return NULL;
+	}
 	memset(shader, 0, sizeof(picoShader_t));
 
 	/* attach it to the model */
@@ -435,14 +449,17 @@ picoShader_t *PicoNewShader (picoModel_t *model)
 void PicoFreeShader (picoShader_t *shader)
 {
 	/* dummy check */
-	if (shader == NULL)
+	if (shader == NULL) {
 		return;
+	}
 
 	/* free bits */
-	if (shader->name)
+	if (shader->name) {
 		_pico_free(shader->name);
-	if (shader->mapName)
+	}
+	if (shader->mapName) {
 		_pico_free(shader->mapName);
+	}
 
 	/* free the shader */
 	_pico_free(shader);
@@ -453,26 +470,30 @@ void PicoFreeShader (picoShader_t *shader)
  finds a named shader in a model
  */
 
-picoShader_t *PicoFindShader (picoModel_t *model, char *name, int caseSensitive)
+picoShader_t *PicoFindShader (picoModel_t *model, const char *name, int caseSensitive)
 {
 	int i;
 
 	/* sanity checks */
-	if (model == NULL || name == NULL) /* sea: null name fix */
+	if (model == NULL || name == NULL) { /* sea: null name fix */
 		return NULL;
+	}
 
 	/* walk list */
 	for (i = 0; i < model->numShaders; i++) {
 		/* skip null shaders or shaders with null names */
-		if (model->shader[i] == NULL || model->shader[i]->name == NULL)
+		if (model->shader[i] == NULL || model->shader[i]->name == NULL) {
 			continue;
+		}
 
 		/* compare the shader name with name we're looking for */
 		if (caseSensitive) {
-			if (!strcmp(name, model->shader[i]->name))
+			if (!strcmp(name, model->shader[i]->name)) {
 				return model->shader[i];
-		} else if (!_pico_stricmp(name, model->shader[i]->name))
+			}
+		} else if (!_pico_stricmp(name, model->shader[i]->name)) {
 			return model->shader[i];
+		}
 	}
 
 	/* named shader not found */
@@ -495,8 +516,9 @@ picoSurface_t *PicoNewSurface (picoModel_t *model)
 
 	/* allocate and clear */
 	surface = _pico_alloc(sizeof(*surface));
-	if (surface == NULL)
+	if (surface == NULL) {
 		return NULL;
+	}
 	memset(surface, 0, sizeof(*surface));
 
 	/* attach it to the model */
@@ -529,8 +551,9 @@ void PicoFreeSurface (picoSurface_t *surface)
 	int i;
 
 	/* dummy check */
-	if (surface == NULL)
+	if (surface == NULL) {
 		return;
+	}
 
 	/* free bits */
 	_pico_free(surface->xyz);
@@ -539,8 +562,9 @@ void PicoFreeSurface (picoSurface_t *surface)
 	_pico_free(surface->index);
 	_pico_free(surface->faceNormal);
 
-	if (surface->name)
+	if (surface->name) {
 		_pico_free(surface->name);
+	}
 
 	/* free arrays */
 	for (i = 0; i < surface->numSTArrays; i++)
@@ -566,53 +590,65 @@ int PicoAdjustSurface (picoSurface_t *surface, int numVertexes, int numSTArrays,
 	int i;
 
 	/* dummy check */
-	if (surface == NULL)
+	if (surface == NULL) {
 		return 0;
+	}
 
 	/* bare minimums */
-	if (numVertexes < 1)
+	if (numVertexes < 1) {
 		numVertexes = 1;
-	if (numSTArrays < 1)
+	}
+	if (numSTArrays < 1) {
 		numSTArrays = 1;
-	if (numColorArrays < 1)
+	}
+	if (numColorArrays < 1) {
 		numColorArrays = 1;
-	if (numIndexes < 1)
+	}
+	if (numIndexes < 1) {
 		numIndexes = 1;
+	}
 
 	/* additional vertexes? */
 	while (numVertexes > surface->maxVertexes) /* fix */
 	{
 		surface->maxVertexes += PICO_GROW_VERTEXES;
 		if (!_pico_realloc((void *) &surface->xyz, surface->numVertexes * sizeof(*surface->xyz),
-				surface->maxVertexes * sizeof(*surface->xyz)))
+				surface->maxVertexes * sizeof(*surface->xyz))) {
 			return 0;
+		}
 		if (!_pico_realloc((void *) &surface->normal, surface->numVertexes * sizeof(*surface->normal),
-				surface->maxVertexes * sizeof(*surface->normal)))
+				surface->maxVertexes * sizeof(*surface->normal))) {
 			return 0;
+		}
 		if (!_pico_realloc((void *) &surface->smoothingGroup, surface->numVertexes * sizeof(*surface->smoothingGroup),
-				surface->maxVertexes * sizeof(*surface->smoothingGroup)))
+				surface->maxVertexes * sizeof(*surface->smoothingGroup))) {
 			return 0;
+		}
 		for (i = 0; i < surface->numSTArrays; i++)
 			if (!_pico_realloc((void*) &surface->st[i], surface->numVertexes * sizeof(*surface->st[i]),
-					surface->maxVertexes * sizeof(*surface->st[i])))
+					surface->maxVertexes * sizeof(*surface->st[i]))) {
 				return 0;
+			}
 		for (i = 0; i < surface->numColorArrays; i++)
 			if (!_pico_realloc((void*) &surface->color[i], surface->numVertexes * sizeof(*surface->color[i]),
-					surface->maxVertexes * sizeof(*surface->color[i])))
+					surface->maxVertexes * sizeof(*surface->color[i]))) {
 				return 0;
+			}
 	}
 
 	/* set vertex count to higher */
-	if (numVertexes > surface->numVertexes)
+	if (numVertexes > surface->numVertexes) {
 		surface->numVertexes = numVertexes;
+	}
 
 	/* additional st arrays? */
 	while (numSTArrays > surface->maxSTArrays) /* fix */
 	{
 		surface->maxSTArrays += PICO_GROW_ARRAYS;
 		if (!_pico_realloc((void*) &surface->st, surface->numSTArrays * sizeof(*surface->st),
-				surface->maxSTArrays * sizeof(*surface->st)))
+				surface->maxSTArrays * sizeof(*surface->st))) {
 			return 0;
+		}
 		while (surface->numSTArrays < numSTArrays) {
 			surface->st[surface->numSTArrays] = _pico_alloc(surface->maxVertexes * sizeof(*surface->st[0]));
 			memset(surface->st[surface->numSTArrays], 0, surface->maxVertexes * sizeof(*surface->st[0]));
@@ -625,8 +661,9 @@ int PicoAdjustSurface (picoSurface_t *surface, int numVertexes, int numSTArrays,
 	{
 		surface->maxColorArrays += PICO_GROW_ARRAYS;
 		if (!_pico_realloc((void*) &surface->color, surface->numColorArrays * sizeof(*surface->color),
-				surface->maxColorArrays * sizeof(*surface->color)))
+				surface->maxColorArrays * sizeof(*surface->color))) {
 			return 0;
+		}
 		while (surface->numColorArrays < numColorArrays) {
 			surface->color[surface->numColorArrays] = _pico_alloc(surface->maxVertexes * sizeof(*surface->color[0]));
 			memset(surface->color[surface->numColorArrays], 0, surface->maxVertexes * sizeof(*surface->color[0]));
@@ -639,26 +676,30 @@ int PicoAdjustSurface (picoSurface_t *surface, int numVertexes, int numSTArrays,
 	{
 		surface->maxIndexes += PICO_GROW_INDEXES;
 		if (!_pico_realloc((void*) &surface->index, surface->numIndexes * sizeof(*surface->index),
-				surface->maxIndexes * sizeof(*surface->index)))
+				surface->maxIndexes * sizeof(*surface->index))) {
 			return 0;
+		}
 	}
 
 	/* set index count to higher */
-	if (numIndexes > surface->numIndexes)
+	if (numIndexes > surface->numIndexes) {
 		surface->numIndexes = numIndexes;
+	}
 
 	/* additional face normals? */
 	while (numFaceNormals > surface->maxFaceNormals) /* fix */
 	{
 		surface->maxFaceNormals += PICO_GROW_FACES;
 		if (!_pico_realloc((void *) &surface->faceNormal, surface->numFaceNormals * sizeof(*surface->faceNormal),
-				surface->maxFaceNormals * sizeof(*surface->faceNormal)))
+				surface->maxFaceNormals * sizeof(*surface->faceNormal))) {
 			return 0;
+		}
 	}
 
 	/* set face normal count to higher */
-	if (numFaceNormals > surface->numFaceNormals)
+	if (numFaceNormals > surface->numFaceNormals) {
 		surface->numFaceNormals = numFaceNormals;
+	}
 
 	/* return ok */
 	return 1;
@@ -667,27 +708,31 @@ int PicoAdjustSurface (picoSurface_t *surface, int numVertexes, int numSTArrays,
 /* PicoFindSurface:
  *   Finds first matching named surface in a model.
  */
-picoSurface_t *PicoFindSurface (picoModel_t *model, char *name, int caseSensitive)
+picoSurface_t *PicoFindSurface (picoModel_t *model, const char *name, int caseSensitive)
 {
 	int i;
 
 	/* sanity check */
-	if (model == NULL || name == NULL)
+	if (model == NULL || name == NULL) {
 		return NULL;
+	}
 
 	/* walk list */
 	for (i = 0; i < model->numSurfaces; i++) {
 		/* skip null surfaces or surfaces with null names */
-		if (model->surface[i] == NULL || model->surface[i]->name == NULL)
+		if (model->surface[i] == NULL || model->surface[i]->name == NULL) {
 			continue;
+		}
 
 		/* compare the surface name with name we're looking for */
 		if (caseSensitive) {
-			if (!strcmp(name, model->surface[i]->name))
+			if (!strcmp(name, model->surface[i]->name)) {
 				return model->surface[i];
+			}
 		} else {
-			if (!_pico_stricmp(name, model->surface[i]->name))
+			if (!_pico_stricmp(name, model->surface[i]->name)) {
 				return model->surface[i];
+			}
 		}
 	}
 	/* named surface not found */
@@ -698,71 +743,83 @@ picoSurface_t *PicoFindSurface (picoModel_t *model, char *name, int caseSensitiv
  PicoSet*() Setter Functions
  ----------------------------------------------------------------------------*/
 
-void PicoSetModelName (picoModel_t *model, char *name)
+void PicoSetModelName (picoModel_t *model, const char *name)
 {
-	if (model == NULL || name == NULL)
+	if (model == NULL || name == NULL) {
 		return;
-	if (model->name != NULL)
+	}
+	if (model->name != NULL) {
 		_pico_free(model->name);
+	}
 
 	model->name = _pico_clone_alloc(name);
 }
 
-void PicoSetModelFileName (picoModel_t *model, char *fileName)
+void PicoSetModelFileName (picoModel_t *model, const char *fileName)
 {
-	if (model == NULL || fileName == NULL)
+	if (model == NULL || fileName == NULL) {
 		return;
-	if (model->fileName != NULL)
+	}
+	if (model->fileName != NULL) {
 		_pico_free(model->fileName);
+	}
 
 	model->fileName = _pico_clone_alloc(fileName);
 }
 
 void PicoSetModelFrameNum (picoModel_t *model, int frameNum)
 {
-	if (model == NULL)
+	if (model == NULL) {
 		return;
+	}
 	model->frameNum = frameNum;
 }
 
 void PicoSetModelNumFrames (picoModel_t *model, int numFrames)
 {
-	if (model == NULL)
+	if (model == NULL) {
 		return;
+	}
 	model->numFrames = numFrames;
 }
 
 void PicoSetModelData (picoModel_t *model, void *data)
 {
-	if (model == NULL)
+	if (model == NULL) {
 		return;
+	}
 	model->data = data;
 }
 
-void PicoSetShaderName (picoShader_t *shader, char *name)
+void PicoSetShaderName (picoShader_t *shader, const char *name)
 {
-	if (shader == NULL || name == NULL)
+	if (shader == NULL || name == NULL) {
 		return;
-	if (shader->name != NULL)
+	}
+	if (shader->name != NULL) {
 		_pico_free(shader->name);
+	}
 
 	shader->name = _pico_clone_alloc(name);
 }
 
-void PicoSetShaderMapName (picoShader_t *shader, char *mapName)
+void PicoSetShaderMapName (picoShader_t *shader, const char *mapName)
 {
-	if (shader == NULL || mapName == NULL)
+	if (shader == NULL || mapName == NULL) {
 		return;
-	if (shader->mapName != NULL)
+	}
+	if (shader->mapName != NULL) {
 		_pico_free(shader->mapName);
+	}
 
 	shader->mapName = _pico_clone_alloc(mapName);
 }
 
 void PicoSetShaderAmbientColor (picoShader_t *shader, picoColor_t color)
 {
-	if (shader == NULL || color == NULL)
+	if (shader == NULL || color == NULL) {
 		return;
+	}
 	shader->ambientColor[0] = color[0];
 	shader->ambientColor[1] = color[1];
 	shader->ambientColor[2] = color[2];
@@ -771,8 +828,9 @@ void PicoSetShaderAmbientColor (picoShader_t *shader, picoColor_t color)
 
 void PicoSetShaderDiffuseColor (picoShader_t *shader, picoColor_t color)
 {
-	if (shader == NULL || color == NULL)
+	if (shader == NULL || color == NULL) {
 		return;
+	}
 	shader->diffuseColor[0] = color[0];
 	shader->diffuseColor[1] = color[1];
 	shader->diffuseColor[2] = color[2];
@@ -781,8 +839,9 @@ void PicoSetShaderDiffuseColor (picoShader_t *shader, picoColor_t color)
 
 void PicoSetShaderSpecularColor (picoShader_t *shader, picoColor_t color)
 {
-	if (shader == NULL || color == NULL)
+	if (shader == NULL || color == NULL) {
 		return;
+	}
 	shader->specularColor[0] = color[0];
 	shader->specularColor[1] = color[1];
 	shader->specularColor[2] = color[2];
@@ -791,97 +850,117 @@ void PicoSetShaderSpecularColor (picoShader_t *shader, picoColor_t color)
 
 void PicoSetShaderTransparency (picoShader_t *shader, float value)
 {
-	if (shader == NULL)
+	if (shader == NULL) {
 		return;
+	}
 	shader->transparency = value;
 
 	/* cap to 0..1 range */
-	if (shader->transparency < 0.0)
+	if (shader->transparency < 0.0) {
 		shader->transparency = 0.0;
-	if (shader->transparency > 1.0)
+	}
+	if (shader->transparency > 1.0) {
 		shader->transparency = 1.0;
+	}
 }
 
 void PicoSetShaderShininess (picoShader_t *shader, float value)
 {
-	if (shader == NULL)
+	if (shader == NULL) {
 		return;
+	}
 	shader->shininess = value;
 
 	/* cap to 0..127 range */
-	if (shader->shininess < 0.0)
+	if (shader->shininess < 0.0) {
 		shader->shininess = 0.0;
-	if (shader->shininess > 127.0)
+	}
+	if (shader->shininess > 127.0) {
 		shader->shininess = 127.0;
+	}
 }
 
 void PicoSetSurfaceData (picoSurface_t *surface, void *data)
 {
-	if (surface == NULL)
+	if (surface == NULL) {
 		return;
+	}
 	surface->data = data;
 }
 
 void PicoSetSurfaceType (picoSurface_t *surface, picoSurfaceType_t type)
 {
-	if (surface == NULL)
+	if (surface == NULL) {
 		return;
+	}
 	surface->type = type;
 }
 
-void PicoSetSurfaceName (picoSurface_t *surface, char *name)
+void PicoSetSurfaceName (picoSurface_t *surface, const char *name)
 {
-	if (surface == NULL || name == NULL)
+	if (surface == NULL || name == NULL) {
 		return;
-	if (surface->name != NULL)
+	}
+	if (surface->name != NULL) {
 		_pico_free(surface->name);
+	}
 
 	surface->name = _pico_clone_alloc(name);
 }
 
 void PicoSetSurfaceShader (picoSurface_t *surface, picoShader_t *shader)
 {
-	if (surface == NULL)
+	if (surface == NULL) {
 		return;
+	}
 	surface->shader = shader;
 }
 
 void PicoSetSurfaceXYZ (picoSurface_t *surface, int num, picoVec3_t xyz)
 {
-	if (surface == NULL || num < 0 || xyz == NULL)
+	if (surface == NULL || num < 0 || xyz == NULL) {
 		return;
-	if (!PicoAdjustSurface(surface, num + 1, 0, 0, 0, 0))
+	}
+	if (!PicoAdjustSurface(surface, num + 1, 0, 0, 0, 0)) {
 		return;
+	}
 	_pico_copy_vec(xyz, surface->xyz[num]);
-	if (surface->model != NULL)
+	if (surface->model != NULL) {
 		_pico_expand_bounds(xyz, surface->model->mins, surface->model->maxs);
+	}
 }
 
 void PicoSetSurfaceNormal (picoSurface_t *surface, int num, picoVec3_t normal)
 {
-	if (surface == NULL || num < 0 || normal == NULL)
+	if (surface == NULL || num < 0 || normal == NULL) {
 		return;
-	if (!PicoAdjustSurface(surface, num + 1, 0, 0, 0, 0))
+	}
+	if (!PicoAdjustSurface(surface, num + 1, 0, 0, 0, 0)) {
 		return;
+	}
 	_pico_copy_vec(normal, surface->normal[num]);
 }
 
 void PicoSetSurfaceST (picoSurface_t *surface, int array, int num, picoVec2_t st)
 {
-	if (surface == NULL || num < 0 || st == NULL)
+	if (surface == NULL || num < 0 || st == NULL) {
 		return;
-	if (!PicoAdjustSurface(surface, num + 1, array + 1, 0, 0, 0))
+	}
+	if (!PicoAdjustSurface(surface, num + 1, array + 1, 0, 0, 0)) {
 		return;
+	}
 	surface->st[array][num][0] = st[0];
 	surface->st[array][num][1] = st[1];
 }
 
 void PicoSetSurfaceColor (picoSurface_t *surface, int array, int num, picoColor_t color)
 {
-	if (surface == NULL || num < 0 || color == NULL)
+	if (surface == NULL || num < 0 || color == NULL) {
 		return;
-	if (!PicoAdjustSurface(surface, num + 1, 0, array + 1, 0, 0))
+	}
+	if (!PicoAdjustSurface(surface, num + 1, 0, array + 1, 0, 0)) {
 		return;
+	}
 	surface->color[array][num][0] = color[0];
 	surface->color[array][num][1] = color[1];
 	surface->color[array][num][2] = color[2];
@@ -890,44 +969,53 @@ void PicoSetSurfaceColor (picoSurface_t *surface, int array, int num, picoColor_
 
 void PicoSetSurfaceIndex (picoSurface_t *surface, int num, picoIndex_t index)
 {
-	if (surface == NULL || num < 0)
+	if (surface == NULL || num < 0) {
 		return;
-	if (!PicoAdjustSurface(surface, 0, 0, 0, num + 1, 0))
+	}
+	if (!PicoAdjustSurface(surface, 0, 0, 0, num + 1, 0)) {
 		return;
+	}
 	surface->index[num] = index;
 }
 
 void PicoSetSurfaceIndexes (picoSurface_t *surface, int num, picoIndex_t *index, int count)
 {
-	if (num < 0 || index == NULL || count < 1)
+	if (num < 0 || index == NULL || count < 1) {
 		return;
-	if (!PicoAdjustSurface(surface, 0, 0, 0, num + count, 0))
+	}
+	if (!PicoAdjustSurface(surface, 0, 0, 0, num + count, 0)) {
 		return;
+	}
 	memcpy(&surface->index[num], index, count * sizeof(surface->index[num]));
 }
 
 void PicoSetFaceNormal (picoSurface_t *surface, int num, picoVec3_t normal)
 {
-	if (surface == NULL || num < 0 || normal == NULL)
+	if (surface == NULL || num < 0 || normal == NULL) {
 		return;
-	if (!PicoAdjustSurface(surface, 0, 0, 0, 0, num + 1))
+	}
+	if (!PicoAdjustSurface(surface, 0, 0, 0, 0, num + 1)) {
 		return;
+	}
 	_pico_copy_vec(normal, surface->faceNormal[num]);
 }
 
 void PicoSetSurfaceSmoothingGroup (picoSurface_t *surface, int num, picoIndex_t smoothingGroup)
 {
-	if (num < 0)
+	if (num < 0) {
 		return;
-	if (!PicoAdjustSurface(surface, num + 1, 0, 0, 0, 0))
+	}
+	if (!PicoAdjustSurface(surface, num + 1, 0, 0, 0, 0)) {
 		return;
+	}
 	surface->smoothingGroup[num] = smoothingGroup;
 }
 
 void PicoSetSurfaceSpecial (picoSurface_t *surface, int num, int special)
 {
-	if (surface == NULL || num < 0 || num >= PICO_MAX_SPECIAL)
+	if (surface == NULL || num < 0 || num >= PICO_MAX_SPECIAL) {
 		return;
+	}
 	surface->special[num] = special;
 }
 
@@ -937,59 +1025,70 @@ void PicoSetSurfaceSpecial (picoSurface_t *surface, int num, int special)
 
 char *PicoGetModelName (picoModel_t *model)
 {
-	if (model == NULL)
+	if (model == NULL) {
 		return NULL;
-	if (model->name == NULL)
+	}
+	if (model->name == NULL) {
 		return (char*) "";
+	}
 	return model->name;
 }
 
 char *PicoGetModelFileName (picoModel_t *model)
 {
-	if (model == NULL)
+	if (model == NULL) {
 		return NULL;
-	if (model->fileName == NULL)
+	}
+	if (model->fileName == NULL) {
 		return (char*) "";
+	}
 	return model->fileName;
 }
 
 int PicoGetModelFrameNum (picoModel_t *model)
 {
-	if (model == NULL)
+	if (model == NULL) {
 		return 0;
+	}
 	return model->frameNum;
 }
 
 int PicoGetModelNumFrames (picoModel_t *model)
 {
-	if (model == NULL)
+	if (model == NULL) {
 		return 0;
+	}
 	return model->numFrames;
 }
 
 void *PicoGetModelData (picoModel_t *model)
 {
-	if (model == NULL)
+	if (model == NULL) {
 		return NULL;
+	}
 	return model->data;
 }
 
 int PicoGetModelNumShaders (picoModel_t *model)
 {
-	if (model == NULL)
+	if (model == NULL) {
 		return 0;
+	}
 	return model->numShaders;
 }
 
 picoShader_t *PicoGetModelShader (picoModel_t *model, int num)
 {
 	/* a few sanity checks */
-	if (model == NULL)
+	if (model == NULL) {
 		return NULL;
-	if (model->shader == NULL)
+	}
+	if (model->shader == NULL) {
 		return NULL;
-	if (num < 0 || num >= model->numShaders)
+	}
+	if (num < 0 || num >= model->numShaders) {
 		return NULL;
+	}
 
 	/* return the shader */
 	return model->shader[num];
@@ -997,20 +1096,24 @@ picoShader_t *PicoGetModelShader (picoModel_t *model, int num)
 
 int PicoGetModelNumSurfaces (picoModel_t *model)
 {
-	if (model == NULL)
+	if (model == NULL) {
 		return 0;
+	}
 	return model->numSurfaces;
 }
 
 picoSurface_t *PicoGetModelSurface (picoModel_t *model, int num)
 {
 	/* a few sanity checks */
-	if (model == NULL)
+	if (model == NULL) {
 		return NULL;
-	if (model->surface == NULL)
+	}
+	if (model->surface == NULL) {
 		return NULL;
-	if (num < 0 || num >= model->numSurfaces)
+	}
+	if (num < 0 || num >= model->numSurfaces) {
 		return NULL;
+	}
 
 	/* return the surface */
 	return model->surface[num];
@@ -1020,10 +1123,12 @@ int PicoGetModelTotalVertexes (picoModel_t *model)
 {
 	int i, count;
 
-	if (model == NULL)
+	if (model == NULL) {
 		return 0;
-	if (model->surface == NULL)
+	}
+	if (model->surface == NULL) {
 		return 0;
+	}
 
 	count = 0;
 	for (i = 0; i < model->numSurfaces; i++)
@@ -1036,10 +1141,12 @@ int PicoGetModelTotalIndexes (picoModel_t *model)
 {
 	int i, count;
 
-	if (model == NULL)
+	if (model == NULL) {
 		return 0;
-	if (model->surface == NULL)
+	}
+	if (model->surface == NULL) {
 		return 0;
+	}
 
 	count = 0;
 	for (i = 0; i < model->numSurfaces; i++)
@@ -1050,161 +1157,186 @@ int PicoGetModelTotalIndexes (picoModel_t *model)
 
 char *PicoGetShaderName (picoShader_t *shader)
 {
-	if (shader == NULL)
+	if (shader == NULL) {
 		return NULL;
-	if (shader->name == NULL)
+	}
+	if (shader->name == NULL) {
 		return (char*) "";
+	}
 	return shader->name;
 }
 
 char *PicoGetShaderMapName (picoShader_t *shader)
 {
-	if (shader == NULL)
+	if (shader == NULL) {
 		return NULL;
-	if (shader->mapName == NULL)
+	}
+	if (shader->mapName == NULL) {
 		return (char*) "";
+	}
 	return shader->mapName;
 }
 
 picoByte_t *PicoGetShaderAmbientColor (picoShader_t *shader)
 {
-	if (shader == NULL)
+	if (shader == NULL) {
 		return NULL;
+	}
 	return shader->ambientColor;
 }
 
 picoByte_t *PicoGetShaderDiffuseColor (picoShader_t *shader)
 {
-	if (shader == NULL)
+	if (shader == NULL) {
 		return NULL;
+	}
 	return shader->diffuseColor;
 }
 
 picoByte_t *PicoGetShaderSpecularColor (picoShader_t *shader)
 {
-	if (shader == NULL)
+	if (shader == NULL) {
 		return NULL;
+	}
 	return shader->specularColor;
 }
 
 float PicoGetShaderTransparency (picoShader_t *shader)
 {
-	if (shader == NULL)
+	if (shader == NULL) {
 		return 0.0f;
+	}
 	return shader->transparency;
 }
 
 float PicoGetShaderShininess (picoShader_t *shader)
 {
-	if (shader == NULL)
+	if (shader == NULL) {
 		return 0.0f;
+	}
 	return shader->shininess;
 }
 
 void *PicoGetSurfaceData (picoSurface_t *surface)
 {
-	if (surface == NULL)
+	if (surface == NULL) {
 		return NULL;
+	}
 	return surface->data;
 }
 
 picoSurfaceType_t PicoGetSurfaceType (picoSurface_t *surface)
 {
-	if (surface == NULL)
+	if (surface == NULL) {
 		return PICO_BAD;
+	}
 	return surface->type;
 }
 
 char *PicoGetSurfaceName (picoSurface_t *surface)
 {
-	if (surface == NULL)
+	if (surface == NULL) {
 		return NULL;
-	if (surface->name == NULL)
+	}
+	if (surface->name == NULL) {
 		return (char*) "";
+	}
 	return surface->name;
 }
 
 picoShader_t *PicoGetSurfaceShader (picoSurface_t *surface)
 {
-	if (surface == NULL)
+	if (surface == NULL) {
 		return NULL;
+	}
 	return surface->shader;
 }
 
 int PicoGetSurfaceNumVertexes (picoSurface_t *surface)
 {
-	if (surface == NULL)
+	if (surface == NULL) {
 		return 0;
+	}
 	return surface->numVertexes;
 }
 
 picoVec_t *PicoGetSurfaceXYZ (picoSurface_t *surface, int num)
 {
-	if (surface == NULL || num < 0 || num > surface->numVertexes)
+	if (surface == NULL || num < 0 || num > surface->numVertexes) {
 		return NULL;
+	}
 	return surface->xyz[num];
 }
 
 picoVec_t *PicoGetSurfaceNormal (picoSurface_t *surface, int num)
 {
-	if (surface == NULL || num < 0 || num > surface->numVertexes)
+	if (surface == NULL || num < 0 || num > surface->numVertexes) {
 		return NULL;
+	}
 	return surface->normal[num];
 }
 
 picoVec_t *PicoGetSurfaceST (picoSurface_t *surface, int array, int num)
 {
-	if (surface == NULL || array < 0 || array > surface->numSTArrays || num < 0 || num > surface->numVertexes)
+	if (surface == NULL || array < 0 || array > surface->numSTArrays || num < 0 || num > surface->numVertexes) {
 		return NULL;
+	}
 	return surface->st[array][num];
 }
 
 picoByte_t *PicoGetSurfaceColor (picoSurface_t *surface, int array, int num)
 {
-	if (surface == NULL || array < 0 || array > surface->numColorArrays || num < 0 || num > surface->numVertexes)
+	if (surface == NULL || array < 0 || array > surface->numColorArrays || num < 0 || num > surface->numVertexes) {
 		return NULL;
+	}
 	return surface->color[array][num];
 }
 
 int PicoGetSurfaceNumIndexes (picoSurface_t *surface)
 {
-	if (surface == NULL)
+	if (surface == NULL) {
 		return 0;
+	}
 	return surface->numIndexes;
 }
 
 picoIndex_t PicoGetSurfaceIndex (picoSurface_t *surface, int num)
 {
-	if (surface == NULL || num < 0 || num > surface->numIndexes)
+	if (surface == NULL || num < 0 || num > surface->numIndexes) {
 		return 0;
+	}
 	return surface->index[num];
 }
 
 picoIndex_t *PicoGetSurfaceIndexes (picoSurface_t *surface, int num)
 {
-	if (surface == NULL || num < 0 || num > surface->numIndexes)
+	if (surface == NULL || num < 0 || num > surface->numIndexes) {
 		return NULL;
+	}
 	return &surface->index[num];
 }
 
 picoVec_t *PicoGetFaceNormal (picoSurface_t *surface, int num)
 {
-	if (surface == NULL || num < 0 || num > surface->numFaceNormals)
+	if (surface == NULL || num < 0 || num > surface->numFaceNormals) {
 		return NULL;
+	}
 	return surface->faceNormal[num];
 }
 
 picoIndex_t PicoGetSurfaceSmoothingGroup (picoSurface_t *surface, int num)
 {
-	if (surface == NULL || num < 0 || num > surface->numVertexes)
+	if (surface == NULL || num < 0 || num > surface->numVertexes) {
 		return -1;
+	}
 	return surface->smoothingGroup[num];
 }
 
 int PicoGetSurfaceSpecial (picoSurface_t *surface, int num)
 {
-	if (surface == NULL || num < 0 || num >= PICO_MAX_SPECIAL)
+	if (surface == NULL || num < 0 || num >= PICO_MAX_SPECIAL) {
 		return 0;
+	}
 	return surface->special[num];
 }
 
@@ -1214,7 +1346,7 @@ int PicoGetSurfaceSpecial (picoSurface_t *surface, int num)
 
 /* hashtable code for faster vertex lookups */
 //#define HASHTABLE_SIZE 32768 // 2048			/* power of 2, use & */
-#define HASHTABLE_SIZE 7919 // 32749 // 2039 	/* prime, use % */
+#define HASHTABLE_SIZE 7919 // 32749 // 2039    /* prime, use % */
 int PicoGetHashTableSize (void)
 {
 	return HASHTABLE_SIZE;
@@ -1223,10 +1355,10 @@ int PicoGetHashTableSize (void)
 #define HASH_USE_EPSILON
 
 #ifdef HASH_USE_EPSILON
-#define HASH_XYZ_EPSILON					0.01f
-#define HASH_XYZ_EPSILONSPACE_MULTIPLIER	1.f / HASH_XYZ_EPSILON
-#define HASH_ST_EPSILON						0.0001f
-#define HASH_NORMAL_EPSILON					0.02f
+#define HASH_XYZ_EPSILON                    0.01f
+#define HASH_XYZ_EPSILONSPACE_MULTIPLIER    1.f / HASH_XYZ_EPSILON
+#define HASH_ST_EPSILON                     0.0001f
+#define HASH_NORMAL_EPSILON                 0.02f
 #endif
 
 unsigned int PicoVertexCoordGenerateHash (picoVec3_t xyz)
@@ -1234,19 +1366,19 @@ unsigned int PicoVertexCoordGenerateHash (picoVec3_t xyz)
 	unsigned int hash = 0;
 
 #ifndef HASH_USE_EPSILON
-	hash += ~(*((unsigned int*) &xyz[ 0 ]) << 15);
-	hash ^= (*((unsigned int*) &xyz[ 0 ]) >> 10);
-	hash += (*((unsigned int*) &xyz[ 1 ]) << 3);
-	hash ^= (*((unsigned int*) &xyz[ 1 ]) >> 6);
-	hash += ~(*((unsigned int*) &xyz[ 2 ]) << 11);
-	hash ^= (*((unsigned int*) &xyz[ 2 ]) >> 16);
+	hash += ~( *( (unsigned int*) &xyz[ 0 ] ) << 15 );
+	hash ^= ( *( (unsigned int*) &xyz[ 0 ] ) >> 10 );
+	hash += ( *( (unsigned int*) &xyz[ 1 ] ) << 3 );
+	hash ^= ( *( (unsigned int*) &xyz[ 1 ] ) >> 6 );
+	hash += ~( *( (unsigned int*) &xyz[ 2 ] ) << 11 );
+	hash ^= ( *( (unsigned int*) &xyz[ 2 ] ) >> 16 );
 #else
 	picoVec3_t xyz_epsilonspace;
 
 	_pico_scale_vec(xyz, HASH_XYZ_EPSILONSPACE_MULTIPLIER, xyz_epsilonspace);
-	xyz_epsilonspace[0] = (double) floor(xyz_epsilonspace[0]);
-	xyz_epsilonspace[1] = (double) floor(xyz_epsilonspace[1]);
-	xyz_epsilonspace[2] = (double) floor(xyz_epsilonspace[2]);
+	xyz_epsilonspace[0] = (float) floor(xyz_epsilonspace[0]);
+	xyz_epsilonspace[1] = (float) floor(xyz_epsilonspace[1]);
+	xyz_epsilonspace[2] = (float) floor(xyz_epsilonspace[2]);
 
 	hash += ~(*((unsigned int*) &xyz_epsilonspace[0]) << 15);
 	hash ^= (*((unsigned int*) &xyz_epsilonspace[0]) >> 10);
@@ -1277,8 +1409,9 @@ void PicoFreeVertexCombinationHashTable (picoVertexCombinationHash_t **hashTable
 	picoVertexCombinationHash_t *nextVertexCombinationHash;
 
 	/* dummy check */
-	if (hashTable == NULL)
+	if (hashTable == NULL) {
 		return;
+	}
 
 	for (i = 0; i < HASHTABLE_SIZE; i++) {
 		if (hashTable[i]) {
@@ -1305,8 +1438,9 @@ picoVertexCombinationHash_t *PicoFindVertexCombinationInHashTable (picoVertexCom
 	picoVertexCombinationHash_t *vertexCombinationHash;
 
 	/* dumy check */
-	if (hashTable == NULL || xyz == NULL || normal == NULL || st == NULL || color == NULL)
+	if (hashTable == NULL || xyz == NULL || normal == NULL || st == NULL || color == NULL) {
 		return NULL;
+	}
 
 	hash = PicoVertexCoordGenerateHash(xyz);
 
@@ -1314,38 +1448,45 @@ picoVertexCombinationHash_t *PicoFindVertexCombinationInHashTable (picoVertexCom
 			vertexCombinationHash = vertexCombinationHash->next) {
 #ifndef HASH_USE_EPSILON
 		/* check xyz */
-		if( (vertexCombinationHash->vcd.xyz[ 0 ] != xyz[ 0 ] || vertexCombinationHash->vcd.xyz[ 1 ] != xyz[ 1 ] || vertexCombinationHash->vcd.xyz[ 2 ] != xyz[ 2 ]) )
-		continue;
+		if ( ( vertexCombinationHash->vcd.xyz[ 0 ] != xyz[ 0 ] || vertexCombinationHash->vcd.xyz[ 1 ] != xyz[ 1 ] || vertexCombinationHash->vcd.xyz[ 2 ] != xyz[ 2 ] ) ) {
+			continue;
+		}
 
 		/* check normal */
-		if( (vertexCombinationHash->vcd.normal[ 0 ] != normal[ 0 ] || vertexCombinationHash->vcd.normal[ 1 ] != normal[ 1 ] || vertexCombinationHash->vcd.normal[ 2 ] != normal[ 2 ]) )
-		continue;
+		if ( ( vertexCombinationHash->vcd.normal[ 0 ] != normal[ 0 ] || vertexCombinationHash->vcd.normal[ 1 ] != normal[ 1 ] || vertexCombinationHash->vcd.normal[ 2 ] != normal[ 2 ] ) ) {
+			continue;
+		}
 
 		/* check st */
-		if( vertexCombinationHash->vcd.st[ 0 ] != st[ 0 ] || vertexCombinationHash->vcd.st[ 1 ] != st[ 1 ] )
-		continue;
+		if ( vertexCombinationHash->vcd.st[ 0 ] != st[ 0 ] || vertexCombinationHash->vcd.st[ 1 ] != st[ 1 ] ) {
+			continue;
+		}
 #else
 		/* check xyz */
 		if ((fabs(xyz[0] - vertexCombinationHash->vcd.xyz[0])) > HASH_XYZ_EPSILON
 				|| (fabs(xyz[1] - vertexCombinationHash->vcd.xyz[1])) > HASH_XYZ_EPSILON
-				|| (fabs(xyz[2] - vertexCombinationHash->vcd.xyz[2])) > HASH_XYZ_EPSILON)
+				|| (fabs(xyz[2] - vertexCombinationHash->vcd.xyz[2])) > HASH_XYZ_EPSILON) {
 			continue;
+		}
 
 		/* check normal */
 		if ((fabs(normal[0] - vertexCombinationHash->vcd.normal[0])) > HASH_NORMAL_EPSILON
 				|| (fabs(normal[1] - vertexCombinationHash->vcd.normal[1])) > HASH_NORMAL_EPSILON
-				|| (fabs(normal[2] - vertexCombinationHash->vcd.normal[2])) > HASH_NORMAL_EPSILON)
+				|| (fabs(normal[2] - vertexCombinationHash->vcd.normal[2])) > HASH_NORMAL_EPSILON) {
 			continue;
+		}
 
 		/* check st */
 		if ((fabs(st[0] - vertexCombinationHash->vcd.st[0])) > HASH_ST_EPSILON
-				|| (fabs(st[1] - vertexCombinationHash->vcd.st[1])) > HASH_ST_EPSILON)
+				|| (fabs(st[1] - vertexCombinationHash->vcd.st[1])) > HASH_ST_EPSILON) {
 			continue;
+		}
 #endif
 
 		/* check color */
-		if (*((int*) vertexCombinationHash->vcd.color) != *((int*) color))
+		if (*((int*) vertexCombinationHash->vcd.color) != *((int*) color)) {
 			continue;
+		}
 
 		/* gotcha */
 		return vertexCombinationHash;
@@ -1361,13 +1502,15 @@ picoVertexCombinationHash_t *PicoAddVertexCombinationToHashTable (picoVertexComb
 	picoVertexCombinationHash_t *vertexCombinationHash;
 
 	/* dumy check */
-	if (hashTable == NULL || xyz == NULL || normal == NULL || st == NULL || color == NULL)
+	if (hashTable == NULL || xyz == NULL || normal == NULL || st == NULL || color == NULL) {
 		return NULL;
+	}
 
 	vertexCombinationHash = _pico_alloc(sizeof(picoVertexCombinationHash_t));
 
-	if (!vertexCombinationHash)
+	if (!vertexCombinationHash) {
 		return NULL;
+	}
 
 	hash = PicoVertexCoordGenerateHash(xyz);
 
@@ -1399,44 +1542,52 @@ int PicoFindSurfaceVertexNum (picoSurface_t *surface, picoVec3_t xyz, picoVec3_t
 	int i, j;
 
 	/* dummy check */
-	if (surface == NULL || surface->numVertexes <= 0)
+	if (surface == NULL || surface->numVertexes <= 0) {
 		return -1;
+	}
 
 	/* walk vertex list */
 	for (i = 0; i < surface->numVertexes; i++) {
 		/* check xyz */
 		if (xyz != NULL
-				&& (surface->xyz[i][0] != xyz[0] || surface->xyz[i][1] != xyz[1] || surface->xyz[i][2] != xyz[2]))
+				&& (surface->xyz[i][0] != xyz[0] || surface->xyz[i][1] != xyz[1] || surface->xyz[i][2] != xyz[2])) {
 			continue;
+		}
 
 		/* check normal */
 		if (normal != NULL
 				&& (surface->normal[i][0] != normal[0] || surface->normal[i][1] != normal[1]
-						|| surface->normal[i][2] != normal[2]))
+						|| surface->normal[i][2] != normal[2])) {
 			continue;
+		}
 
 		/* check normal */
-		if (surface->smoothingGroup[i] != smoothingGroup)
+		if (surface->smoothingGroup[i] != smoothingGroup) {
 			continue;
+		}
 
 		/* check st */
 		if (numSTs > 0 && st != NULL) {
 			for (j = 0; j < numSTs; j++) {
-				if (surface->st[j][i][0] != st[j][0] || surface->st[j][i][1] != st[j][1])
+				if (surface->st[j][i][0] != st[j][0] || surface->st[j][i][1] != st[j][1]) {
 					break;
+				}
 			}
-			if (j != numSTs)
+			if (j != numSTs) {
 				continue;
+			}
 		}
 
 		/* check color */
 		if (numColors > 0 && color != NULL) {
 			for (j = 0; j < numSTs; j++) {
-				if (*((int*) surface->color[j]) != *((int*) color[j]))
+				if (*((int*) surface->color[j]) != *((int*) color[j])) {
 					break;
+				}
 			}
-			if (j != numColors)
+			if (j != numColors) {
 				continue;
+			}
 		}
 
 		/* vertex matches */
@@ -1626,7 +1777,7 @@ void _pico_vertices_combine_shared_normals (picoVec3_t* xyz, picoIndex_t* smooth
 			size_t size = UniqueIndices_size(&vertices);
 			picoIndex_t index = UniqueIndices_insert(&vertices, i);
 			if ((size_t) index != size) {
-				double* normal = normals[vertices.indices.data[index]];
+				float* normal = normals[vertices.indices.data[index]];
 				_pico_add_vec(normal, normals[i], normal);
 			}
 			indexarray_push_back(&indices, index);
@@ -1658,12 +1809,12 @@ void _pico_triangles_generate_weighted_normals (picoIndexIter_t first, picoIndex
 		picoVec3_t* normals)
 {
 	for (; first != end; first += 3) {
-#if (THE_CROSSPRODUCTS_OF_ANY_PAIR_OF_EDGES_OF_A_GIVEN_TRIANGLE_ARE_EQUAL)
+#if ( THE_CROSSPRODUCTS_OF_ANY_PAIR_OF_EDGES_OF_A_GIVEN_TRIANGLE_ARE_EQUAL )
 		picoVec3_t weightedNormal;
 		{
-			double* a = xyz[*(first + 0)];
-			double* b = xyz[*(first + 1)];
-			double* c = xyz[*(first + 2)];
+			float* a = xyz[*(first + 0)];
+			float* b = xyz[*(first + 1)];
+			float* c = xyz[*(first + 2)];
 			picoVec3_t ba, ca;
 			_pico_subtract_vec(b, a, ba);
 			_pico_subtract_vec(c, a, ca);
@@ -1673,13 +1824,13 @@ void _pico_triangles_generate_weighted_normals (picoIndexIter_t first, picoIndex
 		{
 			int j = 0;
 			for (; j < 3; ++j) {
-				double* normal = normals[*(first + j)];
-#if (!THE_CROSSPRODUCTS_OF_ANY_PAIR_OF_EDGES_OF_A_GIVEN_TRIANGLE_ARE_EQUAL)
+				float* normal = normals[*(first + j)];
+#if ( !THE_CROSSPRODUCTS_OF_ANY_PAIR_OF_EDGES_OF_A_GIVEN_TRIANGLE_ARE_EQUAL )
 				picoVec3_t weightedNormal;
 				{
-					double* a = xyz[*(first + ((j + 0) % 3))];
-					double* b = xyz[*(first + ((j + 1) % 3))];
-					double* c = xyz[*(first + ((j + 2) % 3))];
+					float* a = xyz[*( first + ( ( j + 0 ) % 3 ) )];
+					float* b = xyz[*( first + ( ( j + 1 ) % 3 ) )];
+					float* c = xyz[*( first + ( ( j + 2 ) % 3 ) )];
 					picoVec3_t ba, ca;
 					_pico_subtract_vec( b, a, ba );
 					_pico_subtract_vec( c, a, ca );
@@ -1712,11 +1863,11 @@ double _pico_length_vec (picoVec3_t vec)
 }
 
 #define NORMAL_UNIT_LENGTH_EPSILON 0.01
-#define FLOAT_EQUAL_EPSILON(f, other, epsilon) (fabs(f - other) < epsilon)
+#define FLOAT_EQUAL_EPSILON( f, other, epsilon ) ( fabs( f - other ) < epsilon )
 
 int _pico_normal_is_unit_length (picoVec3_t normal)
 {
-	return FLOAT_EQUAL_EPSILON(_pico_length_vec(normal), 1.0, NORMAL_UNIT_LENGTH_EPSILON);
+	return FLOAT_EQUAL_EPSILON( _pico_length_vec( normal ), 1.0, NORMAL_UNIT_LENGTH_EPSILON );
 }
 
 int _pico_normal_within_tolerance (picoVec3_t normal, picoVec3_t other)
@@ -1758,11 +1909,11 @@ void PicoFixSurfaceNormals (picoSurface_t* surface)
  */
 
 #define _prm_error_return \
-{ \
-	_pico_free_parser( p ); \
-	_pico_free_file( remapBuffer ); \
-	return 0; \
-}
+	{ \
+		_pico_free_parser( p );	\
+		_pico_free_file( remapBuffer );	\
+		return 0; \
+	}
 
 int PicoRemapModel (picoModel_t *model, char *remapFile)
 {
@@ -1771,18 +1922,21 @@ int PicoRemapModel (picoModel_t *model, char *remapFile)
 	int remapBufSize;
 
 	/* sanity checks */
-	if (model == NULL || remapFile == NULL)
+	if (model == NULL || remapFile == NULL) {
 		return 0;
+	}
 
 	/* load remap file contents */
 	_pico_load_file(remapFile, &remapBuffer, &remapBufSize);
 
 	/* check result */
-	if (remapBufSize == 0)
+	if (remapBufSize == 0) {
 		return 1; /* file is empty: no error */
-	if (remapBufSize < 0)
+	}
+	if (remapBufSize < 0) {
 		return 0; /* load failed: error */
 
+	}
 	/* create a new pico parser */
 	p = _pico_new_parser(remapBuffer, remapBufSize);
 	if (p == NULL) {
@@ -1793,8 +1947,9 @@ int PicoRemapModel (picoModel_t *model, char *remapFile)
 	/* doo teh parse */
 	while (1) {
 		/* get next token in remap file */
-		if (!_pico_parse(p, 1))
+		if (!_pico_parse(p, 1)) {
 			break;
+		}
 
 		/* skip over c++ style comment lines */
 		if (!_pico_stricmp(p->token, "//")) {
@@ -1808,8 +1963,9 @@ int PicoRemapModel (picoModel_t *model, char *remapFile)
 			int level = 1;
 
 			/* check bracket */
-			if (!_pico_parse_check(p, 1, "{"))
+			if (!_pico_parse_check(p, 1, "{")) {
 				_prm_error_return;
+			}
 
 			/* process assignments */
 			while (1) {
@@ -1817,21 +1973,27 @@ int PicoRemapModel (picoModel_t *model, char *remapFile)
 				char *materialName;
 
 				/* get material name */
-				if (_pico_parse(p, 1) == NULL)
+				if (_pico_parse(p, 1) == NULL) {
 					break;
-				if (!strlen(p->token))
+				}
+				if (!strlen(p->token)) {
 					continue;
+				}
 				materialName = _pico_clone_alloc(p->token);
-				if (materialName == NULL)
+				if (materialName == NULL) {
 					_prm_error_return;
+				}
 
 				/* handle levels */
-				if (p->token[0] == '{')
+				if (p->token[0] == '{') {
 					level++;
-				if (p->token[0] == '}')
+				}
+				if (p->token[0] == '}') {
 					level--;
-				if (!level)
+				}
+				if (!level) {
 					break;
+				}
 
 				/* get next token (assignment token or shader name) */
 				if (!_pico_parse(p, 0)) {
@@ -1868,17 +2030,20 @@ int PicoRemapModel (picoModel_t *model, char *remapFile)
 			int level = 1;
 
 			/* get material name */
-			if (!_pico_parse(p, 0))
+			if (!_pico_parse(p, 0)) {
 				_prm_error_return;
+			}
 
 			/* temporary copy of material name */
 			tempMaterialName = _pico_clone_alloc(p->token);
-			if (tempMaterialName == NULL)
+			if (tempMaterialName == NULL) {
 				_prm_error_return;
+			}
 
 			/* check square closing bracket */
-			if (!_pico_parse_check(p, 0, "]"))
+			if (!_pico_parse_check(p, 0, "]")) {
 				_prm_error_return;
+			}
 
 			/* try to find material by name */
 			shader = PicoFindShader(model, tempMaterialName, 0);
@@ -1894,35 +2059,43 @@ int PicoRemapModel (picoModel_t *model, char *remapFile)
 				continue;
 			}
 			/* check opening bracket */
-			if (!_pico_parse_check(p, 1, "{"))
+			if (!_pico_parse_check(p, 1, "{")) {
 				_prm_error_return;
+			}
 
 			/* process material info keys */
 			while (1) {
 				/* get key name */
-				if (_pico_parse(p, 1) == NULL)
+				if (_pico_parse(p, 1) == NULL) {
 					break;
-				if (!strlen(p->token))
+				}
+				if (!strlen(p->token)) {
 					continue;
+				}
 
 				/* handle levels */
-				if (p->token[0] == '{')
+				if (p->token[0] == '{') {
 					level++;
-				if (p->token[0] == '}')
+				}
+				if (p->token[0] == '}') {
 					level--;
-				if (!level)
+				}
+				if (!level) {
 					break;
+				}
 
 				/* remap shader name */
 				if (!_pico_stricmp(p->token, "shader")) {
-					if (!_pico_parse(p, 0))
+					if (!_pico_parse(p, 0)) {
 						_prm_error_return;
+					}
 					PicoSetShaderName(shader, p->token);
 				}
 				/* remap shader map name */
 				else if (!_pico_stricmp(p->token, "mapname")) {
-					if (!_pico_parse(p, 0))
+					if (!_pico_parse(p, 0)) {
 						_prm_error_return;
+					}
 					PicoSetShaderMapName(shader, p->token);
 				}
 				/* remap shader's ambient color */
@@ -1931,8 +2104,9 @@ int PicoRemapModel (picoModel_t *model, char *remapFile)
 					picoVec3_t v;
 
 					/* get vector from parser */
-					if (!_pico_parse_vec(p, v))
+					if (!_pico_parse_vec(p, v)) {
 						_prm_error_return;
+					}
 
 					/* store as color */
 					color[0] = (picoByte_t) v[0];
@@ -1948,8 +2122,9 @@ int PicoRemapModel (picoModel_t *model, char *remapFile)
 					picoVec3_t v;
 
 					/* get vector from parser */
-					if (!_pico_parse_vec(p, v))
+					if (!_pico_parse_vec(p, v)) {
 						_prm_error_return;
+					}
 
 					/* store as color */
 					color[0] = (picoByte_t) v[0];
@@ -1965,8 +2140,9 @@ int PicoRemapModel (picoModel_t *model, char *remapFile)
 					picoVec3_t v;
 
 					/* get vector from parser */
-					if (!_pico_parse_vec(p, v))
+					if (!_pico_parse_vec(p, v)) {
 						_prm_error_return;
+					}
 
 					/* store as color */
 					color[0] = (picoByte_t) v[0];
@@ -1998,7 +2174,7 @@ int PicoRemapModel (picoModel_t *model, char *remapFile)
  */
 
 void PicoAddTriangleToModel (picoModel_t *model, picoVec3_t** xyz, picoVec3_t** normals, int numSTs, picoVec2_t **st,
-		int numColors, picoColor_t **colors, picoShader_t* shader, picoIndex_t* smoothingGroup)
+		int numColors, picoColor_t **colors, picoShader_t* shader, const char *name, picoIndex_t* smoothingGroup)
 {
 	int i, j;
 	int vertDataIndex;
@@ -2007,8 +2183,10 @@ void PicoAddTriangleToModel (picoModel_t *model, picoVec3_t** xyz, picoVec3_t** 
 	/* see if a surface already has the shader */
 	for (i = 0; i < model->numSurfaces; i++) {
 		workSurface = model->surface[i];
-		if (workSurface->shader == shader) {
-			break;
+		if (!name || !strcmp(workSurface->name, name)) {
+			if (workSurface->shader == shader) {
+				break;
+			}
 		}
 	}
 
@@ -2023,7 +2201,7 @@ void PicoAddTriangleToModel (picoModel_t *model, picoVec3_t** xyz, picoVec3_t** 
 
 		/* do surface setup */
 		PicoSetSurfaceType(workSurface, PICO_TRIANGLES);
-		PicoSetSurfaceName(workSurface, shader->name);
+		PicoSetSurfaceName(workSurface, name ? name : shader->name);
 		PicoSetSurfaceShader(workSurface, shader);
 	}
 
