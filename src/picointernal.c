@@ -233,6 +233,35 @@ void _pico_free_file (void *buffer)
 	_pico_ptr_free_file(buffer);
 }
 
+/** Safe (null terminating) vsnprintf implementation
+ */
+static int _pico_vsnprintf (char *str, size_t size, const char *format, va_list ap)
+{
+#if defined(_WIN32)
+	const int len = _vsnprintf(str, size, format, ap);
+	str[size - 1] = '\0';
+#else
+	const int len = vsnprintf(str, size, format, ap);
+#endif
+
+	return len;
+}
+
+int _pico_sprintf (char *dest, size_t size, const char *fmt, ...)
+{
+	va_list ap;
+	int len;
+
+	if (!fmt)
+		return 0;
+
+	va_start(ap, fmt);
+	len = _pico_vsnprintf(dest, size, fmt, ap);
+	va_end(ap);
+
+	return len;
+}
+
 /* _pico_printf:
  * wrapper around the print function pointer -sea
  */
@@ -250,9 +279,9 @@ void _pico_printf (int level, const char *format, ...)
 	}
 
 	/* format string */
-	va_start( argptr, format);
-	vsprintf(str, format, argptr);
-	va_end( argptr);
+	va_start(argptr, format);
+	_pico_vsnprintf(str, sizeof(str), format, argptr);
+	va_end(argptr);
 
 	/* remove linefeeds */
 	if (str[strlen(str) - 1] == '\n') {

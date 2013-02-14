@@ -534,7 +534,7 @@ picoSurface_t *PicoNewSurface (picoModel_t *model)
 		surface->model = model;
 
 		/* set default name */
-		sprintf(surfaceName, "Unnamed_%d", model->numSurfaces);
+		_pico_sprintf(surfaceName, sizeof(surfaceName), "Unnamed_%d", model->numSurfaces);
 		PicoSetSurfaceName(surface, surfaceName);
 	}
 

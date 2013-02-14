@@ -419,7 +419,7 @@ static int GetMeshShader (T3dsLoaderPers *pers)
 			const char *name;
 
 			/* copy map name to local buffer */
-			strcpy(mapName, mapNamePtr);
+			strncpy(mapName, mapNamePtr, sizeof(mapName));
 
 			/* extract file name */
 			name = _pico_nopath(mapName);
@@ -435,7 +435,7 @@ static int GetMeshShader (T3dsLoaderPers *pers)
 
 			/* build shader name */
 			_pico_strlwr(temp); /* gaynux update -sea */
-			sprintf(mapName, "models/mapobjects/%s/%s", pers->basename, temp);
+			_pico_sprintf(mapName, sizeof(mapName), "models/mapobjects/%s/%s", pers->basename, temp);
 
 			/* set shader name */
 			/* PicoSetShaderName( shader,mapName ); *//* ydnar: this will screw up the named shader */

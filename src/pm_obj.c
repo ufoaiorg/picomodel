@@ -509,7 +509,7 @@ static picoModel_t *_obj_load (PM_PARAMS_LOAD)
 	char autoGroupNameBuf[64];
 
 #define AUTO_GROUPNAME( namebuf ) \
-	sprintf( namebuf, "__autogroup_%d", autoGroupNumber++ )
+	_pico_sprintf( namebuf, sizeof(namebuf), "__autogroup_%d", autoGroupNumber++ )
 #define NEW_SURFACE( name )	\
 	{ \
 		picoSurface_t *newSurface; \
@@ -698,8 +698,8 @@ static picoModel_t *_obj_load (PM_PARAMS_LOAD)
 			if (curSurface == NULL) {
 				_pico_printf(PICO_WARNING, "No group defined for faces, so creating an autoSurface in OBJ, line %d.",
 						p->curLine);
-				AUTO_GROUPNAME( autoGroupNameBuf);
-				NEW_SURFACE( autoGroupNameBuf);
+				AUTO_GROUPNAME(autoGroupNameBuf);
+				NEW_SURFACE(autoGroupNameBuf);
 			}
 
 			/* group defs *must* come before faces */
