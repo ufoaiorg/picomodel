@@ -63,7 +63,7 @@ typedef struct SObjVertexData {
 /* _obj_canload:
  *  validates a wavefront obj model file.
  */
-static int _obj_canload ( PM_PARAMS_CANLOAD)
+static int _obj_canload (PM_PARAMS_CANLOAD)
 {
 	picoParser_t *p;
 
@@ -73,7 +73,7 @@ static int _obj_canload ( PM_PARAMS_CANLOAD)
 
 	/* first check file extension. we have to do this for objs */
 	/* cause there is no good way to identify the contents */
-	if (_pico_stristr(fileName, ".obj") != NULL || _pico_stristr(fileName, ".wf") != NULL ) {
+	if (_pico_stristr(fileName, ".obj") != NULL || _pico_stristr(fileName, ".wf") != NULL) {
 		return PICO_PMV_OK;
 	}
 	/* if the extension check failed we parse through the first */
@@ -82,13 +82,13 @@ static int _obj_canload ( PM_PARAMS_CANLOAD)
 
 	/* alllocate a new pico parser */
 	p = _pico_new_parser((picoByte_t *) buffer, bufSize);
-	if (p == NULL )
+	if (p == NULL)
 		return PICO_PMV_ERROR_MEMORY;
 
 	/* parse obj head line by line for type check */
 	while (1) {
 		/* get first token on line */
-		if (_pico_parse_first(p) == NULL )
+		if (_pico_parse_first(p) == NULL)
 			break;
 
 		/* we only parse the first few lines, say 80 */
@@ -132,9 +132,9 @@ static TObjVertexData *SizeObjVertexData (TObjVertexData *vertexData, int reqEnt
 
 	/* sanity checks */
 	if (reqEntries < 1)
-		return NULL ;
-	if (entries == NULL || allocated == NULL )
-		return NULL ; /* must have */
+		return NULL;
+	if (entries == NULL || allocated == NULL)
+		return NULL; /* must have */
 
 	/* no need to grow yet */
 	if (vertexData && (reqEntries < *allocated)) {
@@ -142,7 +142,7 @@ static TObjVertexData *SizeObjVertexData (TObjVertexData *vertexData, int reqEnt
 		return vertexData;
 	}
 	/* given vertex data ptr not allocated yet */
-	if (vertexData == NULL ) {
+	if (vertexData == NULL) {
 		/* how many entries to allocate */
 		newAllocated = (reqEntries > SIZE_OBJ_STEP) ? reqEntries : SIZE_OBJ_STEP;
 
@@ -155,8 +155,8 @@ static TObjVertexData *SizeObjVertexData (TObjVertexData *vertexData, int reqEnt
 		vertexData = (TObjVertexData *) _pico_alloc(sizeof(TObjVertexData) * newAllocated);
 
 		/* allocation failed */
-		if (vertexData == NULL )
-			return NULL ;
+		if (vertexData == NULL)
+			return NULL;
 
 		/* allocation succeeded */
 		*allocated = newAllocated;
@@ -177,8 +177,8 @@ static TObjVertexData *SizeObjVertexData (TObjVertexData *vertexData, int reqEnt
 				sizeof(TObjVertexData) * (newAllocated));
 
 		/* reallocation failed */
-		if (vertexData == NULL )
-			return NULL ;
+		if (vertexData == NULL)
+			return NULL;
 
 		/* reallocation succeeded */
 		*allocated = newAllocated;
@@ -186,12 +186,12 @@ static TObjVertexData *SizeObjVertexData (TObjVertexData *vertexData, int reqEnt
 		return vertexData;
 	}
 	/* we're b0rked when we reach this */
-	return NULL ;
+	return NULL;
 }
 
 static void FreeObjVertexData (TObjVertexData *vertexData)
 {
-	if (vertexData != NULL ) {
+	if (vertexData != NULL) {
 		free((TObjVertexData *) vertexData);
 	}
 }
@@ -205,7 +205,7 @@ static int _obj_mtl_load (picoModel_t *model)
 	char *fileName;
 
 	/* sanity checks */
-	if (model == NULL || model->fileName == NULL )
+	if (model == NULL || model->fileName == NULL)
 		return 0;
 
 	/* skip if we have a zero length model file name */
@@ -222,7 +222,7 @@ static int _obj_mtl_load (picoModel_t *model)
 	}
 	/* alloc copy of model file name */
 	fileName = _pico_clone_alloc(model->fileName);
-	if (fileName == NULL )
+	if (fileName == NULL)
 		return 0;
 
 	/* change extension of model file to .mtl */
@@ -239,14 +239,13 @@ static int _obj_mtl_load (picoModel_t *model)
 
 	/* create a new pico parser */
 	p = _pico_new_parser(mtlBuffer, mtlBufSize);
-	if (p == NULL )
-		_obj_mtl_error_return
-	;
+	if (p == NULL)
+		_obj_mtl_error_return;
 
 	/* doo teh .mtl parse */
 	while (1) {
 		/* get next token in material file */
-		if (_pico_parse(p, 1) == NULL )
+		if (_pico_parse(p, 1) == NULL)
 			break;
 #if 0
 
@@ -463,7 +462,7 @@ static int _obj_mtl_load (picoModel_t *model)
 /* _obj_load:
  *  loads a wavefront obj model file.
  */
-static picoModel_t *_obj_load ( PM_PARAMS_LOAD)
+static picoModel_t *_obj_load (PM_PARAMS_LOAD)
 {
 	TObjVertexData *vertexData = NULL;
 	picoModel_t *model;
@@ -488,14 +487,14 @@ static picoModel_t *_obj_load ( PM_PARAMS_LOAD)
 	}
 	/* alllocate a new pico parser */
 	p = _pico_new_parser((picoByte_t *) buffer, bufSize);
-	if (p == NULL )
-		return NULL ;
+	if (p == NULL)
+		return NULL;
 
 	/* create a new pico model */
 	model = PicoNewModel();
-	if (model == NULL ) {
+	if (model == NULL) {
 		_pico_free_parser(p);
-		return NULL ;
+		return NULL;
 	}
 	/* do model setup */
 	PicoSetModelFrameNum(model, frameNum);
@@ -510,7 +509,7 @@ static picoModel_t *_obj_load ( PM_PARAMS_LOAD)
 	/* parse obj line by line */
 	while (1) {
 		/* get first token on line */
-		if (_pico_parse_first(p) == NULL )
+		if (_pico_parse_first(p) == NULL)
 			break;
 
 		/* skip empty lines */
@@ -528,7 +527,7 @@ static picoModel_t *_obj_load ( PM_PARAMS_LOAD)
 			picoVec3_t v;
 
 			vertexData = SizeObjVertexData(vertexData, numVerts + 1, &entries, &allocated);
-			if (vertexData == NULL )
+			if (vertexData == NULL)
 				_obj_error_return("Realloc of vertex data failed (1)");
 
 			data = &vertexData[numVerts++];
@@ -549,7 +548,7 @@ static picoModel_t *_obj_load ( PM_PARAMS_LOAD)
 			picoVec2_t coord;
 
 			vertexData = SizeObjVertexData(vertexData, numUVs + 1, &entries, &allocated);
-			if (vertexData == NULL )
+			if (vertexData == NULL)
 				_obj_error_return("Realloc of vertex data failed (2)");
 
 			data = &vertexData[numUVs++];
@@ -570,7 +569,7 @@ static picoModel_t *_obj_load ( PM_PARAMS_LOAD)
 			picoVec3_t n;
 
 			vertexData = SizeObjVertexData(vertexData, numNormals + 1, &entries, &allocated);
-			if (vertexData == NULL )
+			if (vertexData == NULL)
 				_obj_error_return("Realloc of vertex data failed (3)");
 
 			data = &vertexData[numNormals++];
@@ -604,7 +603,7 @@ static picoModel_t *_obj_load ( PM_PARAMS_LOAD)
 			}
 			/* allocate a pico surface */
 			newSurface = PicoNewSurface(model);
-			if (newSurface == NULL )
+			if (newSurface == NULL)
 				_obj_error_return("Error allocating surface");
 
 			/* reset face index for surface */
@@ -645,7 +644,7 @@ static picoModel_t *_obj_load ( PM_PARAMS_LOAD)
 			int i;
 
 			/* group defs *must* come before faces */
-			if (curSurface == NULL )
+			if (curSurface == NULL)
 				_obj_error_return("No group defined for faces");
 
 #ifdef DEBUG_PM_OBJ_EX
@@ -661,7 +660,7 @@ static picoModel_t *_obj_load ( PM_PARAMS_LOAD)
 				/* get next vertex index string (different */
 				/* formats are handled below) */
 				str = _pico_parse(p, 0);
-				if (str == NULL ) {
+				if (str == NULL) {
 					/* just break for quads */
 					if (i == 3)
 						break;
@@ -780,17 +779,17 @@ static picoModel_t *_obj_load ( PM_PARAMS_LOAD)
 					/*if( has_vn )*/PicoSetSurfaceNormal(curSurface, (curVertex + i), normals[i]);
 				}
 				/* add our triangle (A B C) */
-				PicoSetSurfaceIndex(curSurface, (curFace * 3 + 2), (picoIndex_t)(curVertex + 0));
-				PicoSetSurfaceIndex(curSurface, (curFace * 3 + 1), (picoIndex_t)(curVertex + 1));
-				PicoSetSurfaceIndex(curSurface, (curFace * 3 + 0), (picoIndex_t)(curVertex + 2));
+				PicoSetSurfaceIndex(curSurface, (curFace * 3 + 2), (picoIndex_t) (curVertex + 0));
+				PicoSetSurfaceIndex(curSurface, (curFace * 3 + 1), (picoIndex_t) (curVertex + 1));
+				PicoSetSurfaceIndex(curSurface, (curFace * 3 + 0), (picoIndex_t) (curVertex + 2));
 				curFace++;
 
 				/* if we don't have a simple triangle, but a quad... */
 				if (have_quad) {
 					/* we have to add another triangle (2nd half of quad which is A C D) */
-					PicoSetSurfaceIndex(curSurface, (curFace * 3 + 2), (picoIndex_t)(curVertex + 0));
-					PicoSetSurfaceIndex(curSurface, (curFace * 3 + 1), (picoIndex_t)(curVertex + 2));
-					PicoSetSurfaceIndex(curSurface, (curFace * 3 + 0), (picoIndex_t)(curVertex + 3));
+					PicoSetSurfaceIndex(curSurface, (curFace * 3 + 2), (picoIndex_t) (curVertex + 0));
+					PicoSetSurfaceIndex(curSurface, (curFace * 3 + 1), (picoIndex_t) (curVertex + 2));
+					PicoSetSurfaceIndex(curSurface, (curFace * 3 + 0), (picoIndex_t) (curVertex + 3));
 					curFace++;
 				}
 				/* increase vertex count */

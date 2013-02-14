@@ -185,7 +185,7 @@ float md2_normals[MD2_NUMVERTEXNORMALS][3] = { { -0.525731f, 0.000000f, 0.850651
 
 // _md2_canload()
 
-static int _md2_canload ( PM_PARAMS_CANLOAD)
+static int _md2_canload (PM_PARAMS_CANLOAD)
 {
 	md2_t *md2;
 
@@ -213,7 +213,7 @@ static int _md2_canload ( PM_PARAMS_CANLOAD)
 
 // _md2_load() loads a quake2 md2 model file.
 
-static picoModel_t *_md2_load ( PM_PARAMS_LOAD)
+static picoModel_t *_md2_load (PM_PARAMS_LOAD)
 {
 	int i, j;
 	short tot_numVerts;
@@ -243,7 +243,7 @@ static picoModel_t *_md2_load ( PM_PARAMS_LOAD)
 	if (*((int*) md2->magic) != *((int*) MD2_MAGIC) || _pico_little_long(md2->version) != MD2_VERSION) {
 		/* not an md2 file (todo: set error) */
 		_pico_printf(PICO_ERROR, "%s is not an MD2 File!", fileName);
-		return NULL ;
+		return NULL;
 	}
 
 	// swap md2
@@ -270,12 +270,12 @@ static picoModel_t *_md2_load ( PM_PARAMS_LOAD)
 	// do frame check
 	if (md2->numFrames < 1) {
 		_pico_printf(PICO_ERROR, "%s has 0 frames!", fileName);
-		return NULL ;
+		return NULL;
 	}
 
 	if (frameNum < 0 || frameNum >= md2->numFrames) {
 		_pico_printf(PICO_ERROR, "Invalid or out-of-range MD2 frame specified");
-		return NULL ;
+		return NULL;
 	}
 
 	// Setup Frame
@@ -309,9 +309,9 @@ static picoModel_t *_md2_load ( PM_PARAMS_LOAD)
 
 	/* create new pico model */
 	picoModel = PicoNewModel();
-	if (picoModel == NULL ) {
+	if (picoModel == NULL) {
 		_pico_printf(PICO_ERROR, "Unable to allocate a new model");
-		return NULL ;
+		return NULL;
 	}
 
 	/* do model setup */
@@ -342,10 +342,10 @@ static picoModel_t *_md2_load ( PM_PARAMS_LOAD)
 		_pico_setfext(skinname, "");
 
 		picoShader = PicoNewShader(picoModel);
-		if (picoShader == NULL ) {
+		if (picoShader == NULL) {
 			_pico_printf(PICO_ERROR, "Unable to allocate a new model shader");
 			PicoFreeModel(picoModel);
-			return NULL ;
+			return NULL;
 		}
 
 		PicoSetShaderName(picoShader, skinname);
@@ -353,19 +353,19 @@ static picoModel_t *_md2_load ( PM_PARAMS_LOAD)
 
 	// allocate new pico surface
 	picoSurface = PicoNewSurface(picoModel);
-	if (picoSurface == NULL ) {
+	if (picoSurface == NULL) {
 		_pico_printf(PICO_ERROR, "Unable to allocate a new model surface");
 		PicoFreeModel(picoModel);
-		return NULL ;
+		return NULL;
 	}
 
 	PicoSetSurfaceType(picoSurface, PICO_TRIANGLES);
 	PicoSetSurfaceName(picoSurface, frame->name);
 	picoShader = PicoNewShader(picoModel);
-	if (picoShader == NULL ) {
+	if (picoShader == NULL) {
 		_pico_printf(PICO_ERROR, "Unable to allocate a new model shader");
 		PicoFreeModel(picoModel);
-		return NULL ;
+		return NULL;
 	}
 
 	PicoSetShaderName(picoShader, skinname);

@@ -74,8 +74,8 @@ NULL /* arnold */
 const picoModule_t **PicoModuleList (int *numModules)
 {
 	/* get module count */
-	if (numModules != NULL )
-		for ((*numModules) = 0; picoModules[*numModules] != NULL ; (*numModules)++)
+	if (numModules != NULL)
+		for ((*numModules) = 0; picoModules[*numModules] != NULL; (*numModules)++)
 			;
 
 	/* return list of modules */

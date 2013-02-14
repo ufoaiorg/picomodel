@@ -147,7 +147,7 @@ typedef struct SMsKeyframe {
 /* _ms3d_canload:
  *	validates a milkshape3d model file.
  */
-static int _ms3d_canload ( PM_PARAMS_CANLOAD)
+static int _ms3d_canload (PM_PARAMS_CANLOAD)
 {
 	TMsHeader *hdr;
 
@@ -176,9 +176,9 @@ static int _ms3d_canload ( PM_PARAMS_CANLOAD)
 
 static unsigned char *GetWord (unsigned char *bufptr, int *out)
 {
-	if (bufptr == NULL ) {
+	if (bufptr == NULL) {
 		*out = 0;
-		return NULL ;
+		return NULL;
 	}
 
 	*out = _pico_little_short(*(unsigned short *) bufptr);
@@ -188,7 +188,7 @@ static unsigned char *GetWord (unsigned char *bufptr, int *out)
 /* _ms3d_load:
  *	loads a milkshape3d model file.
  */
-static picoModel_t *_ms3d_load ( PM_PARAMS_LOAD)
+static picoModel_t *_ms3d_load (PM_PARAMS_LOAD)
 {
 	picoModel_t *model;
 	unsigned char *bufptr;
@@ -204,8 +204,8 @@ static picoModel_t *_ms3d_load ( PM_PARAMS_LOAD)
 
 	/* create new pico model */
 	model = PicoNewModel();
-	if (model == NULL )
-		return NULL ;
+	if (model == NULL)
+		return NULL;
 
 	/* do model setup */
 	PicoSetModelFrameNum(model, frameNum);
@@ -271,7 +271,7 @@ static picoModel_t *_ms3d_load ( PM_PARAMS_LOAD)
 				_pico_printf(PICO_ERROR, "Vertex %d index %d out of range (%d, max %d)", i, k,
 						triangle->vertexIndices[k], numVerts - 1);
 				PicoFreeModel(model);
-				return NULL ; /* yuck */
+				return NULL; /* yuck */
 			}
 		}
 	}
@@ -300,9 +300,9 @@ static picoModel_t *_ms3d_load ( PM_PARAMS_LOAD)
 
 		/* create new pico surface */
 		surface = PicoNewSurface(model);
-		if (surface == NULL ) {
+		if (surface == NULL) {
 			PicoFreeModel(model);
-			return NULL ;
+			return NULL;
 		}
 		/* do surface setup */
 		PicoSetSurfaceType(surface, PICO_TRIANGLES);
@@ -397,15 +397,15 @@ static picoModel_t *_ms3d_load ( PM_PARAMS_LOAD)
 
 		/* create new pico shader */
 		shader = PicoNewShader(model);
-		if (shader == NULL ) {
+		if (shader == NULL) {
 			PicoFreeModel(model);
-			return NULL ;
+			return NULL;
 		}
 		/* scale shader colors */
 		for (k = 0; k < 4; k++) {
-			ambient[k] = (picoByte_t)(material->ambient[k] * 255);
-			diffuse[k] = (picoByte_t)(material->diffuse[k] * 255);
-			specular[k] = (picoByte_t)(material->specular[k] * 255);
+			ambient[k] = (picoByte_t) (material->ambient[k] * 255);
+			diffuse[k] = (picoByte_t) (material->diffuse[k] * 255);
+			specular[k] = (picoByte_t) (material->specular[k] * 255);
 		}
 		/* set shader colors */
 		PicoSetShaderAmbientColor(shader, ambient);
@@ -439,12 +439,12 @@ static picoModel_t *_ms3d_load ( PM_PARAMS_LOAD)
 
 		/* get surface */
 		surface = PicoGetModelSurface(model, i);
-		if (surface == NULL )
+		if (surface == NULL)
 			continue;
 
 		/* get shader */
 		shader = PicoGetModelShader(model, shaderRefs[i]);
-		if (shader == NULL )
+		if (shader == NULL)
 			continue;
 
 		/* assign shader */

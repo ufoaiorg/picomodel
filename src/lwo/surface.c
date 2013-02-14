@@ -592,7 +592,7 @@ lwTexture *lwGetTexture (picoMemStream_t *fp, int bloksz, unsigned int type)
 
 	tex = _pico_calloc(1, sizeof(lwTexture));
 	if (!tex)
-		return NULL ;
+		return NULL;
 
 	tex->type = type;
 	tex->tmap.size.val[0] = tex->tmap.size.val[1] = tex->tmap.size.val[2] = 1.0f;
@@ -602,7 +602,7 @@ lwTexture *lwGetTexture (picoMemStream_t *fp, int bloksz, unsigned int type)
 	sz = getU2(fp);
 	if (!lwGetTHeader(fp, sz, tex)) {
 		_pico_free(tex);
-		return NULL ;
+		return NULL;
 	}
 
 	sz = bloksz - sz - 6;
@@ -622,7 +622,7 @@ lwTexture *lwGetTexture (picoMemStream_t *fp, int bloksz, unsigned int type)
 
 	if (!ok) {
 		lwFreeTexture(tex);
-		return NULL ;
+		return NULL;
 	}
 
 	set_flen(bloksz);
@@ -645,7 +645,7 @@ lwPlugin *lwGetShader (picoMemStream_t *fp, int bloksz)
 
 	shdr = _pico_calloc(1, sizeof(lwPlugin));
 	if (!shdr)
-		return NULL ;
+		return NULL;
 
 	pos = _pico_memstream_tell(fp);
 	set_flen(0);
@@ -718,7 +718,7 @@ lwPlugin *lwGetShader (picoMemStream_t *fp, int bloksz)
 	return shdr;
 
 	Fail: lwFreePlugin(shdr);
-	return NULL ;
+	return NULL;
 }
 
 /*
@@ -732,11 +732,11 @@ lwPlugin *lwGetShader (picoMemStream_t *fp, int bloksz)
 
 static int compare_textures (lwTexture *a, lwTexture *b)
 {
-	if (a->ord != NULL && b->ord != NULL ) {
+	if (a->ord != NULL && b->ord != NULL) {
 		return strcmp(a->ord, b->ord);
-	} else if (a->ord != NULL ) {
+	} else if (a->ord != NULL) {
 		return 1;
-	} else if (b->ord != NULL ) {
+	} else if (b->ord != NULL) {
 		return -1;
 	} else {
 		// Both strings are NULL
@@ -746,11 +746,11 @@ static int compare_textures (lwTexture *a, lwTexture *b)
 
 static int compare_shaders (lwPlugin *a, lwPlugin *b)
 {
-	if (a->ord != NULL && b->ord != NULL ) {
+	if (a->ord != NULL && b->ord != NULL) {
 		return strcmp(a->ord, b->ord);
-	} else if (a->ord != NULL ) {
+	} else if (a->ord != NULL) {
 		return 1;
-	} else if (b->ord != NULL ) {
+	} else if (b->ord != NULL) {
 		return -1;
 	} else {
 		// Both strings are NULL
@@ -822,7 +822,7 @@ lwSurface *lwDefaultSurface (void)
 
 	surf = _pico_calloc(1, sizeof(lwSurface));
 	if (!surf)
-		return NULL ;
+		return NULL;
 
 	surf->color.rgb[0] = 0.78431f;
 	surf->color.rgb[1] = 0.78431f;
@@ -1075,5 +1075,5 @@ lwSurface *lwGetSurface (picoMemStream_t *fp, int cksize)
 
 	Fail: if (surf)
 		lwFreeSurface(surf);
-	return NULL ;
+	return NULL;
 }

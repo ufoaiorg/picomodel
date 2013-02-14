@@ -117,7 +117,7 @@ typedef struct md3_s {
  by one structure only.
  */
 
-static int _md3_canload ( PM_PARAMS_CANLOAD)
+static int _md3_canload (PM_PARAMS_CANLOAD)
 {
 	md3_t *md3;
 
@@ -148,7 +148,7 @@ static int _md3_canload ( PM_PARAMS_CANLOAD)
  loads a quake3 arena md3 model file.
  */
 
-static picoModel_t *_md3_load ( PM_PARAMS_LOAD)
+static picoModel_t *_md3_load (PM_PARAMS_LOAD)
 {
 	int i, j;
 	picoByte_t *bb;
@@ -179,7 +179,7 @@ static picoModel_t *_md3_load ( PM_PARAMS_LOAD)
 	/* check ident and version */
 	if (*((int*) md3->magic) != *((int*) MD3_MAGIC) || _pico_little_long(md3->version) != MD3_VERSION) {
 		/* not an md3 file (todo: set error) */
-		return NULL ;
+		return NULL;
 	}
 
 	/* swap md3; sea: swaps fixed */
@@ -196,12 +196,12 @@ static picoModel_t *_md3_load ( PM_PARAMS_LOAD)
 	/* do frame check */
 	if (md3->numFrames < 1) {
 		_pico_printf(PICO_ERROR, "MD3 with 0 frames");
-		return NULL ;
+		return NULL;
 	}
 
 	if (frameNum < 0 || frameNum >= md3->numFrames) {
 		_pico_printf(PICO_ERROR, "Invalid or out-of-range MD3 frame specified");
-		return NULL ;
+		return NULL;
 	}
 
 	/* swap frames */
@@ -265,9 +265,9 @@ static picoModel_t *_md3_load ( PM_PARAMS_LOAD)
 
 	/* create new pico model */
 	picoModel = PicoNewModel();
-	if (picoModel == NULL ) {
+	if (picoModel == NULL) {
 		_pico_printf(PICO_ERROR, "Unable to allocate a new model");
-		return NULL ;
+		return NULL;
 	}
 
 	/* do model setup */
@@ -283,10 +283,10 @@ static picoModel_t *_md3_load ( PM_PARAMS_LOAD)
 	for (i = 0; i < md3->numSurfaces; i++) {
 		/* allocate new pico surface */
 		picoSurface = PicoNewSurface(picoModel);
-		if (picoSurface == NULL ) {
+		if (picoSurface == NULL) {
 			_pico_printf(PICO_ERROR, "Unable to allocate a new model surface");
 			PicoFreeModel(picoModel); /* sea */
-			return NULL ;
+			return NULL;
 		}
 
 		/* md3 model surfaces are all triangle meshes */
@@ -297,10 +297,10 @@ static picoModel_t *_md3_load ( PM_PARAMS_LOAD)
 
 		/* create new pico shader -sea */
 		picoShader = PicoNewShader(picoModel);
-		if (picoShader == NULL ) {
+		if (picoShader == NULL) {
 			_pico_printf(PICO_ERROR, "Unable to allocate a new model shader");
 			PicoFreeModel(picoModel);
-			return NULL ;
+			return NULL;
 		}
 
 		/* detox and set shader name */

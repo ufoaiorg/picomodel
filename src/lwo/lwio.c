@@ -93,20 +93,20 @@ void *getbytes (picoMemStream_t *fp, int size)
 	void *data;
 
 	if (flen == FLEN_ERROR)
-		return NULL ;
+		return NULL;
 	if (size < 0) {
 		flen = FLEN_ERROR;
-		return NULL ;
+		return NULL;
 	}
 	data = _pico_alloc(size);
 	if (!data) {
 		flen = FLEN_ERROR;
-		return NULL ;
+		return NULL;
 	}
 	if (1 != _pico_memstream_read(fp, data, size)) {
 		flen = FLEN_ERROR;
 		_pico_free(data);
-		return NULL ;
+		return NULL;
 	}
 
 	flen += size;
@@ -266,7 +266,7 @@ char *getS0 (picoMemStream_t *fp)
 	int i, c, len, pos;
 
 	if (flen == FLEN_ERROR)
-		return NULL ;
+		return NULL;
 
 	pos = _pico_memstream_tell(fp);
 	for (i = 1;; i++) {
@@ -276,7 +276,7 @@ char *getS0 (picoMemStream_t *fp)
 	}
 	if (c < 0) {
 		flen = FLEN_ERROR;
-		return NULL ;
+		return NULL;
 	}
 
 	if (i == 1) {
@@ -284,23 +284,23 @@ char *getS0 (picoMemStream_t *fp)
 			flen = FLEN_ERROR;
 		else
 			flen += 2;
-		return NULL ;
+		return NULL;
 	}
 
 	len = i + (i & 1);
 	s = _pico_alloc(len);
 	if (!s) {
 		flen = FLEN_ERROR;
-		return NULL ;
+		return NULL;
 	}
 
 	if (_pico_memstream_seek(fp, pos, PICO_SEEK_SET)) {
 		flen = FLEN_ERROR;
-		return NULL ;
+		return NULL;
 	}
 	if (1 != _pico_memstream_read(fp, s, len)) {
 		flen = FLEN_ERROR;
-		return NULL ;
+		return NULL;
 	}
 
 	flen += len;
@@ -425,19 +425,19 @@ char *sgetS0 (unsigned char **bp)
 	int len;
 
 	if (flen == FLEN_ERROR)
-		return NULL ;
+		return NULL;
 
 	len = strlen((char*) buf) + 1;
 	if (len == 1) {
 		flen += 2;
 		*bp += 2;
-		return NULL ;
+		return NULL;
 	}
 	len += len & 1;
 	s = _pico_alloc(len);
 	if (!s) {
 		flen = FLEN_ERROR;
-		return NULL ;
+		return NULL;
 	}
 
 	memcpy(s, buf, len);

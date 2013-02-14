@@ -182,7 +182,7 @@ lwEnvelope *lwGetEnvelope (picoMemStream_t *fp, int cksize)
 	return env;
 
 	Fail: lwFreeEnvelope(env);
-	return NULL ;
+	return NULL;
 }
 
 /*
@@ -487,7 +487,7 @@ float evalEnvelope (lwEnvelope *env, float time)
 			return skey->value;
 
 		case BEH_REPEAT:
-			time = range(time, skey->time, ekey->time, NULL );
+			time = range(time, skey->time, ekey->time, NULL);
 			break;
 
 		case BEH_OSCILLATE:
@@ -518,7 +518,7 @@ float evalEnvelope (lwEnvelope *env, float time)
 			return ekey->value;
 
 		case BEH_REPEAT:
-			time = range(time, skey->time, ekey->time, NULL );
+			time = range(time, skey->time, ekey->time, NULL);
 			break;
 
 		case BEH_OSCILLATE:

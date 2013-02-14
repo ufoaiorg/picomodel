@@ -85,7 +85,7 @@ lwObject *lwGetObject (char *filename, picoMemStream_t *fp, unsigned int *failID
 	/* open the file */
 
 	if (!fp)
-		return NULL ;
+		return NULL;
 
 	/* read the first 12 bytes */
 
@@ -94,7 +94,7 @@ lwObject *lwGetObject (char *filename, picoMemStream_t *fp, unsigned int *failID
 	formsize = getU4(fp);
 	type = getU4(fp);
 	if (12 != get_flen()) {
-		return NULL ;
+		return NULL;
 	}
 
 	/* is this a LW object? */
@@ -102,7 +102,7 @@ lwObject *lwGetObject (char *filename, picoMemStream_t *fp, unsigned int *failID
 	if (id != ID_FORM) {
 		if (failpos)
 			*failpos = 12;
-		return NULL ;
+		return NULL;
 	}
 
 	if (type != ID_LWO2) {
@@ -111,7 +111,7 @@ lwObject *lwGetObject (char *filename, picoMemStream_t *fp, unsigned int *failID
 		else {
 			if (failpos)
 				*failpos = 12;
-			return NULL ;
+			return NULL;
 		}
 	}
 
@@ -280,7 +280,7 @@ lwObject *lwGetObject (char *filename, picoMemStream_t *fp, unsigned int *failID
 			*failpos = _pico_memstream_tell(fp);
 	}
 	lwFreeObject(object);
-	return NULL ;
+	return NULL;
 }
 
 int lwValidateObject (char *filename, picoMemStream_t *fp, unsigned int *failID, int *failpos)

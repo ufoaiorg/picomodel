@@ -148,7 +148,7 @@ static lwTexture *get_texture (char *s)
 
 	tex = _pico_calloc(1, sizeof(lwTexture));
 	if (!tex)
-		return NULL ;
+		return NULL;
 
 	tex->tmap.size.val[0] = tex->tmap.size.val[1] = tex->tmap.size.val[2] = 1.0f;
 	tex->opacity.val = 1.0f;
@@ -499,7 +499,7 @@ lwSurface *lwGetSurface5 (picoMemStream_t *fp, int cksize, lwObject *obj)
 
 	Fail: if (surf)
 		lwFreeSurface(surf);
-	return NULL ;
+	return NULL;
 }
 
 /*
@@ -613,7 +613,7 @@ lwObject *lwGetObject5 (char *filename, picoMemStream_t *fp, unsigned int *failI
 	/* open the file */
 
 	if (!fp)
-		return NULL ;
+		return NULL;
 
 	/* read the first 12 bytes */
 
@@ -622,7 +622,7 @@ lwObject *lwGetObject5 (char *filename, picoMemStream_t *fp, unsigned int *failI
 	formsize = getU4(fp);
 	type = getU4(fp);
 	if (12 != get_flen()) {
-		return NULL ;
+		return NULL;
 	}
 
 	/* LWOB? */
@@ -630,7 +630,7 @@ lwObject *lwGetObject5 (char *filename, picoMemStream_t *fp, unsigned int *failI
 	if (id != ID_FORM || type != ID_LWOB) {
 		if (failpos)
 			*failpos = 12;
-		return NULL ;
+		return NULL;
 	}
 
 	/* allocate an object and a default layer */
@@ -717,7 +717,7 @@ lwObject *lwGetObject5 (char *filename, picoMemStream_t *fp, unsigned int *failI
 			*failpos = _pico_memstream_tell(fp);
 	}
 	lwFreeObject(object);
-	return NULL ;
+	return NULL;
 }
 
 int lwValidateObject5 (char *filename, picoMemStream_t *fp, unsigned int *failID, int *failpos)

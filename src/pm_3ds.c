@@ -156,7 +156,7 @@ typedef struct S3dsChunk {
 /* _3ds_canload:
  *  validates an autodesk 3ds model file.
  */
-static int _3ds_canload ( PM_PARAMS_CANLOAD)
+static int _3ds_canload (PM_PARAMS_CANLOAD)
 {
 	T3dsChunk *chunk;
 
@@ -196,7 +196,7 @@ static T3dsChunk *GetChunk (T3dsLoaderPers *pers)
 	/* fill in pointer to chunk */
 	chunk = (T3dsChunk *) &pers->bufptr[pers->cofs];
 	if (!chunk)
-		return NULL ;
+		return NULL;
 
 	chunk->id = _pico_little_short(chunk->id);
 	chunk->len = _pico_little_long(chunk->len);
@@ -354,7 +354,7 @@ static int GetMeshTexCoords (T3dsLoaderPers *pers)
 		uv[1] = -GetFloat(pers); /* ydnar: we use origin at bottom */
 
 		/* to make sure we don't mess up memory */
-		if (pers->surface == NULL )
+		if (pers->surface == NULL)
 			continue;
 
 		/* add current uv */
@@ -398,7 +398,7 @@ static int GetMeshShader (T3dsLoaderPers *pers)
 	shader = PicoFindShader(pers->model, shaderName, 1);
 
 	/* we've found a matching shader */
-	if ((shader != NULL )&& pers->surface) {
+	if ((shader != NULL) && pers->surface) {
 		char mapName[1024 + 1];
 		char *mapNamePtr;
 		memset(mapName, 0, sizeof(mapName));
@@ -407,7 +407,7 @@ static int GetMeshShader (T3dsLoaderPers *pers)
 		mapNamePtr = PicoGetShaderMapName(shader);
 
 		/* we have a valid map name ptr */
-		if (mapNamePtr != NULL ) {
+		if (mapNamePtr != NULL) {
 			char temp[128];
 			const char *name;
 
@@ -494,7 +494,7 @@ static int DoNextEditorDataChunk (T3dsLoaderPers *pers, long endofs)
 #endif
 	while (pers->cofs < endofs) {
 		long nextofs = pers->cofs;
-		if ((chunk = GetChunk(pers)) == NULL )
+		if ((chunk = GetChunk(pers)) == NULL)
 			return 0;
 		if (!chunk->len)
 			return 0;
@@ -517,7 +517,7 @@ static int DoNextEditorDataChunk (T3dsLoaderPers *pers, long endofs)
 //			if( surfaceName
 			/* allocate a pico surface */
 			surface = PicoNewSurface(pers->model);
-			if (surface == NULL ) {
+			if (surface == NULL) {
 				pers->surface = NULL;
 				return 0; /* this is bad too */
 			}
@@ -568,7 +568,7 @@ static int DoNextEditorDataChunk (T3dsLoaderPers *pers, long endofs)
 
 			/* allocate a pico shader */
 			shader = PicoNewShader(pers->model); /* ydnar */
-			if (shader == NULL ) {
+			if (shader == NULL) {
 				pers->shader = NULL;
 				return 0; /* this is bad too */
 			}
@@ -645,7 +645,7 @@ static int DoNextChunk (T3dsLoaderPers *pers, int endofs)
 #endif
 	while (pers->cofs < endofs) {
 		long nextofs = pers->cofs;
-		if ((chunk = GetChunk(pers)) == NULL )
+		if ((chunk = GetChunk(pers)) == NULL)
 			return 0;
 		if (!chunk->len)
 			return 0;
@@ -695,7 +695,7 @@ static int DoNextChunk (T3dsLoaderPers *pers, int endofs)
 /* _3ds_load:
  *  loads an autodesk 3ds model file.
  */
-static picoModel_t *_3ds_load ( PM_PARAMS_LOAD)
+static picoModel_t *_3ds_load (PM_PARAMS_LOAD)
 {
 	T3dsLoaderPers pers;
 	picoModel_t *model;
@@ -703,9 +703,9 @@ static picoModel_t *_3ds_load ( PM_PARAMS_LOAD)
 
 	/* create a new pico model */
 	model = PicoNewModel();
-	if (model == NULL ) {
+	if (model == NULL) {
 		/* user must have some serious ram problems ;) */
-		return NULL ;
+		return NULL;
 	}
 	/* get model's base name (eg. jeep from c:\models\jeep.3ds) */
 	memset(basename, 0, sizeof(basename));
@@ -731,7 +731,7 @@ static picoModel_t *_3ds_load ( PM_PARAMS_LOAD)
 	if (!DoNextChunk(&pers, pers.maxofs)) {
 		/* well, bleh i guess */
 		PicoFreeModel(model);
-		return NULL ;
+		return NULL;
 	}
 	/* return allocated pico model */
 	return model;

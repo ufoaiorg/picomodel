@@ -38,7 +38,6 @@
 /* uncomment when debugging this module */
 //#define DEBUG_PM_ASE
 //#define DEBUG_PM_ASE_EX
-
 /* dependencies */
 #include "picointernal.h"
 
@@ -88,7 +87,7 @@ static aseSubMaterial_t* _ase_get_submaterial (aseMaterial_t* list, int mtlIdPar
 
 	if (!parent) {
 		_pico_printf(PICO_ERROR, "No ASE material exists with id %i\n", mtlIdParent);
-		return NULL ;
+		return NULL;
 	}
 
 	subMtl = parent->subMtls;
@@ -104,18 +103,18 @@ static aseSubMaterial_t* _ase_get_submaterial (aseMaterial_t* list, int mtlIdPar
 aseSubMaterial_t* _ase_get_submaterial_or_default (aseMaterial_t* materials, int mtlIdParent, int subMtlId)
 {
 	aseSubMaterial_t* subMtl = _ase_get_submaterial(materials, mtlIdParent, subMtlId);
-	if (subMtl != NULL ) {
+	if (subMtl != NULL) {
 		return subMtl;
 	}
 
 	/* ydnar: trying default submaterial */
 	subMtl = _ase_get_submaterial(materials, mtlIdParent, 0);
-	if (subMtl != NULL ) {
+	if (subMtl != NULL) {
 		return subMtl;
 	}
 
 	_pico_printf(PICO_ERROR, "Could not find material/submaterial for id %d/%d\n", mtlIdParent, subMtlId);
-	return NULL ;
+	return NULL;
 }
 
 static aseMaterial_t* _ase_add_material (aseMaterial_t **list, int mtlIdParent)
@@ -195,7 +194,7 @@ static void _ase_print_materials( aseMaterial_t *list )
 /* _ase_canload:
  *  validates a 3dsmax ase model file.
  */
-static int _ase_canload ( PM_PARAMS_CANLOAD)
+static int _ase_canload (PM_PARAMS_CANLOAD)
 {
 	picoParser_t *p;
 
@@ -208,11 +207,11 @@ static int _ase_canload ( PM_PARAMS_CANLOAD)
 
 	/* create pico parser */
 	p = _pico_new_parser((picoByte_t*) buffer, bufSize);
-	if (p == NULL )
+	if (p == NULL)
 		return PICO_PMV_ERROR_MEMORY;
 
 	/* get first token */
-	if (_pico_parse_first(p) == NULL ) {
+	if (_pico_parse_first(p) == NULL) {
 		return PICO_PMV_ERROR_IDENT;
 	}
 
@@ -435,7 +434,7 @@ static void _ase_submit_triangles (picoModel_t* model, aseMaterial_t* materials,
 	for (; i != end; ++i) {
 		/* look up the shader for the material/submaterial pair */
 		aseSubMaterial_t* subMtl = _ase_get_submaterial_or_default(materials, (*i).materialId, (*i).subMaterialId);
-		if (subMtl == NULL ) {
+		if (subMtl == NULL) {
 			return;
 		}
 
@@ -482,7 +481,7 @@ static void shadername_convert (char* shaderName)
 /* _ase_load:
  *  loads a 3dsmax ase model file.
  */
-static picoModel_t *_ase_load ( PM_PARAMS_LOAD)
+static picoModel_t *_ase_load (PM_PARAMS_LOAD)
 {
 	picoModel_t *model;
 	picoParser_t *p;
@@ -518,14 +517,14 @@ static picoModel_t *_ase_load ( PM_PARAMS_LOAD)
 	}
 	/* create a new pico parser */
 	p = _pico_new_parser((picoByte_t *) buffer, bufSize);
-	if (p == NULL )
-		return NULL ;
+	if (p == NULL)
+		return NULL;
 
 	/* create a new pico model */
 	model = PicoNewModel();
-	if (model == NULL ) {
+	if (model == NULL) {
 		_pico_free_parser(p);
-		return NULL ;
+		return NULL;
 	}
 	/* do model setup */
 	PicoSetModelFrameNum(model, frameNum);
@@ -538,7 +537,7 @@ static picoModel_t *_ase_load ( PM_PARAMS_LOAD)
 	/* parse ase model file */
 	while (1) {
 		/* get first token on line */
-		if (_pico_parse_first(p) == NULL )
+		if (_pico_parse_first(p) == NULL)
 			break;
 
 		/* we just skip empty lines */
@@ -554,7 +553,7 @@ static picoModel_t *_ase_load ( PM_PARAMS_LOAD)
 		if (!_pico_stricmp(p->token, "*node_name")) {
 			/* read node name */
 			char *ptr = _pico_parse(p, 0);
-			if (ptr == NULL )
+			if (ptr == NULL)
 				_ase_error_return("Node name parse error");
 
 			/* remember node name */
@@ -759,17 +758,17 @@ static picoModel_t *_ase_load ( PM_PARAMS_LOAD)
 			/* get R component */
 			if (!_pico_parse_float(p, &colorInput))
 				_ase_error_return("Color vertex parse error");
-			colors[index].color[0] = (picoByte_t)(colorInput * 255);
+			colors[index].color[0] = (picoByte_t) (colorInput * 255);
 
 			/* get G component */
 			if (!_pico_parse_float(p, &colorInput))
 				_ase_error_return("Color vertex parse error");
-			colors[index].color[1] = (picoByte_t)(colorInput * 255);
+			colors[index].color[1] = (picoByte_t) (colorInput * 255);
 
 			/* get B component */
 			if (!_pico_parse_float(p, &colorInput))
 				_ase_error_return("Color vertex parse error");
-			colors[index].color[2] = (picoByte_t)(colorInput * 255);
+			colors[index].color[2] = (picoByte_t) (colorInput * 255);
 
 			/* leave alpha alone since we don't get any data from the ASE format */
 			colors[index].color[3] = 255;
@@ -826,7 +825,7 @@ static picoModel_t *_ase_load ( PM_PARAMS_LOAD)
 			/* parse material block */
 			while (1) {
 				/* get next token */
-				if (_pico_parse(p, 1) == NULL )
+				if (_pico_parse(p, 1) == NULL)
 					break;
 				if (!strlen(p->token))
 					continue;
@@ -852,7 +851,7 @@ static picoModel_t *_ase_load ( PM_PARAMS_LOAD)
 					PicoSetShaderAmbientColor(shader, ambientColor);
 
 					/* set diffuse alpha to transparency */
-					diffuseColor[3] = (picoByte_t)(transValue * 255.0);
+					diffuseColor[3] = (picoByte_t) (transValue * 255.0);
 
 					/* set shader's diffuse color */
 					PicoSetShaderDiffuseColor(shader, diffuseColor);
@@ -876,16 +875,16 @@ static picoModel_t *_ase_load ( PM_PARAMS_LOAD)
 					_pico_parse_int(p, &subMtlId);
 
 					shader = PicoNewShader(model);
-					if (shader == NULL ) {
+					if (shader == NULL) {
 						PicoFreeModel(model);
-						return NULL ;
+						return NULL;
 					}
 					subMaterialLevel = level;
 				}
 				/* parse material name */
 				else if (!_pico_stricmp(p->token, "*material_name")) {
 					char* name = _pico_parse(p, 0);
-					if (name == NULL )
+					if (name == NULL)
 						_ase_error_return("Missing material name");
 
 					strcpy(materialName, name);
@@ -980,7 +979,7 @@ static picoModel_t *_ase_load ( PM_PARAMS_LOAD)
 					/* parse material block */
 					while (1) {
 						/* get next token */
-						if (_pico_parse(p, 1) == NULL )
+						if (_pico_parse(p, 1) == NULL)
 							break;
 						if (!strlen(p->token))
 							continue;
@@ -996,7 +995,7 @@ static picoModel_t *_ase_load ( PM_PARAMS_LOAD)
 						/* parse diffuse map bitmap */
 						if (!_pico_stricmp(p->token, "*bitmap")) {
 							char* name = _pico_parse(p, 0);
-							if (name == NULL )
+							if (name == NULL)
 								_ase_error_return("Missing material map bitmap name");
 							mapname = _pico_alloc(strlen(name) + 1);
 							strcpy(mapname, name);
@@ -1010,12 +1009,12 @@ static picoModel_t *_ase_load ( PM_PARAMS_LOAD)
 			}
 			/* end material block */
 
-			if (subMaterial == NULL ) {
+			if (subMaterial == NULL) {
 				/* allocate new pico shader */
 				shader = PicoNewShader(model);
-				if (shader == NULL ) {
+				if (shader == NULL) {
 					PicoFreeModel(model);
-					return NULL ;
+					return NULL;
 				}
 
 				/* set material name */
@@ -1029,7 +1028,7 @@ static picoModel_t *_ase_load ( PM_PARAMS_LOAD)
 				PicoSetShaderAmbientColor(shader, ambientColor);
 
 				/* set diffuse alpha to transparency */
-				diffuseColor[3] = (picoByte_t)(transValue * 255.0);
+				diffuseColor[3] = (picoByte_t) (transValue * 255.0);
 
 				/* set shader's diffuse color */
 				PicoSetShaderDiffuseColor(shader, diffuseColor);
@@ -1044,7 +1043,7 @@ static picoModel_t *_ase_load ( PM_PARAMS_LOAD)
 				PicoSetShaderMapName(shader, mapname);
 
 				/* extract shadername from bitmap path */
-				if (mapname != NULL ) {
+				if (mapname != NULL) {
 					char* p = mapname;
 
 					/* convert to shader-name format */
@@ -1052,7 +1051,7 @@ static picoModel_t *_ase_load ( PM_PARAMS_LOAD)
 					{
 						/* remove extension */
 						char* last_period = strrchr(p, '.');
-						if (last_period != NULL ) {
+						if (last_period != NULL) {
 							*last_period = '\0';
 						}
 					}
@@ -1089,7 +1088,7 @@ static picoModel_t *_ase_load ( PM_PARAMS_LOAD)
 			}
 
 			/* ydnar: free mapname */
-			if (mapname != NULL )
+			if (mapname != NULL)
 				_pico_free(mapname);
 		} // !_pico_stricmp ( "*material" )
 

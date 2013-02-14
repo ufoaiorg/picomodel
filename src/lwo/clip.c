@@ -259,7 +259,7 @@ lwClip *lwGetClip (picoMemStream_t *fp, int cksize)
 	return clip;
 
 	Fail: lwFreeClip(clip);
-	return NULL ;
+	return NULL;
 }
 
 /*
